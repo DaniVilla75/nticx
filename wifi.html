@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiFi y Conectividad — 4° NTICx</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0e0c08;
+  --bg2:     #17140d;
+  --bg3:     #211d13;
+  --card:    #1c1810;
+  --border:  rgba(255,160,30,0.15);
+  --border2: rgba(255,160,30,0.3);
+  --amber:   #f59e0b;
+  --amber2:  #fcd34d;
+  --orange:  #ea580c;
+  --red:     #ef4444;
+  --green:   #22c55e;
+  --blue:    #38bdf8;
+  --text:    #f5f0e8;
+  --text2:   #a89880;
+  --text3:   #5c5040;
+  --display: 'Bebas Neue', sans-serif;
+  --mono:    'IBM Plex Mono', monospace;
+  --body:    'Barlow', sans-serif;
+  --r:       10px;
+  --r-sm:    6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--body);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── SCANLINES OVERLAY ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ── SEÑAL ANIMADA FONDO ── */
+#signal-canvas{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:0.18;
+}
+
+.wrap{
+  position:relative;
+  z-index:1;
+  max-width:920px;
+  margin:0 auto;
+  padding:0 1.25rem 4rem;
+}
+
+/* ── HEADER ── */
+header{
+  padding:3rem 0 2.5rem;
+  border-bottom:2px solid var(--amber);
+  margin-bottom:0;
+  position:relative;
+}
+.header-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:1rem;
+  flex-wrap:wrap;
+}
+.signal-icon{
+  display:flex;
+  gap:3px;
+  align-items:flex-end;
+  padding-top:4px;
+}
+.signal-icon span{
+  display:block;
+  width:8px;
+  background:var(--amber);
+  border-radius:2px 2px 0 0;
+  animation:pulse-bar 1.4s ease-in-out infinite;
+}
+.signal-icon span:nth-child(1){height:10px; animation-delay:0s;}
+.signal-icon span:nth-child(2){height:18px; animation-delay:0.15s;}
+.signal-icon span:nth-child(3){height:26px; animation-delay:0.3s;}
+.signal-icon span:nth-child(4){height:34px; animation-delay:0.45s;}
+@keyframes pulse-bar{
+  0%,100%{opacity:0.3;}
+  50%{opacity:1;}
+}
+.chip{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--amber);
+  background:rgba(245,158,11,0.1);
+  border:1px solid rgba(245,158,11,0.3);
+  padding:4px 10px;
+  border-radius:3px;
+  letter-spacing:0.08em;
+}
+header h1{
+  font-family:var(--display);
+  font-size:clamp(3rem,8vw,5.5rem);
+  line-height:0.95;
+  letter-spacing:0.02em;
+  color:var(--text);
+  margin:0.5rem 0 0.3rem;
+}
+header h1 em{
+  font-style:normal;
+  color:var(--amber);
+}
+header p{
+  font-size:0.95rem;
+  color:var(--text2);
+  max-width:520px;
+  line-height:1.6;
+}
+
+/* ── STICKY NAV ── */
+.sticky-nav{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(14,12,8,0.95);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  padding:0 0;
+  display:flex;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.sticky-nav::-webkit-scrollbar{display:none;}
+.nav-btn{
+  flex-shrink:0;
+  font-family:var(--mono);
+  font-size:0.68rem;
+  font-weight:700;
+  letter-spacing:0.06em;
+  color:var(--text3);
+  background:none;
+  border:none;
+  border-bottom:2px solid transparent;
+  padding:0.8rem 1rem;
+  cursor:pointer;
+  transition:all 0.2s;
+  white-space:nowrap;
+}
+.nav-btn:hover,.nav-btn.active{
+  color:var(--amber);
+  border-bottom-color:var(--amber);
+}
+
+/* ── SECTIONS ── */
+.section{
+  margin-top:2.5rem;
+  scroll-margin-top:48px;
+}
+.section-label{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:1rem;
+}
+.section-label .num{
+  font-family:var(--display);
+  font-size:3rem;
+  line-height:1;
+  color:var(--amber);
+  opacity:0.25;
+}
+.section-label h2{
+  font-family:var(--display);
+  font-size:2rem;
+  letter-spacing:0.04em;
+  line-height:1.1;
+  color:var(--text);
+}
+.section-label .sub{
+  font-size:0.78rem;
+  color:var(--text2);
+  font-family:var(--mono);
+  margin-top:2px;
+}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:1.1rem 1.25rem;
+}
+.card+.card{margin-top:10px;}
+
+.def-block{
+  border-left:3px solid var(--amber);
+  background:rgba(245,158,11,0.05);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:0.9rem 1.1rem;
+  margin-bottom:0.75rem;
+}
+.def-label{
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.12em;
+  color:var(--amber);
+  margin-bottom:5px;
+}
+.def-text{font-size:0.92rem;line-height:1.7;color:var(--text);}
+.def-text strong{color:var(--amber2);}
+
+.tip-box{
+  background:rgba(34,197,94,0.06);
+  border:1px solid rgba(34,197,94,0.2);
+  border-radius:var(--r-sm);
+  padding:0.8rem 1rem;
+  margin:0.6rem 0;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.tip-box .t-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px;}
+.tip-box p{font-size:0.85rem;color:#86efac;line-height:1.55;}
+.tip-box strong{color:var(--green);}
+
+.warn-box{
+  background:rgba(239,68,68,0.06);
+  border:1px solid rgba(239,68,68,0.2);
+  border-radius:var(--r-sm);
+  padding:0.8rem 1rem;
+  margin:0.6rem 0;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.warn-box p{font-size:0.85rem;color:#fca5a5;line-height:1.55;}
+.warn-box strong{color:var(--red);}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0.75rem 0;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0.75rem 0;}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0.75rem 0;}
+@media(max-width:580px){.g2,.g3{grid-template-columns:1fr;}.g4{grid-template-columns:1fr 1fr;}}
+
+/* ── MINI CARD ── */
+.mc{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:0.85rem 0.9rem;
+}
+.mc .mc-icon{font-size:1.6rem;margin-bottom:6px;}
+.mc h4{font-size:0.85rem;font-weight:700;color:var(--amber2);margin-bottom:3px;}
+.mc p{font-size:0.75rem;color:var(--text2);line-height:1.5;}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:0.82rem;margin:0.75rem 0;}
+.tbl th{
+  background:var(--bg3);
+  color:var(--amber);
+  font-family:var(--mono);
+  font-size:0.7rem;
+  letter-spacing:0.08em;
+  padding:8px 10px;
+  text-align:left;
+  border-bottom:1px solid var(--border2);
+}
+.tbl td{
+  padding:8px 10px;
+  border-bottom:1px solid rgba(255,160,30,0.07);
+  color:var(--text);
+  vertical-align:top;
+  line-height:1.5;
+}
+.tbl tr:hover td{background:rgba(245,158,11,0.04);}
+.tbl td:first-child{font-weight:700;color:var(--amber2);white-space:nowrap;}
+
+/* ── SPEED BARS ── */
+.speed-grid{margin:0.75rem 0;}
+.speed-row{
+  display:grid;
+  grid-template-columns:130px 1fr 90px;
+  align-items:center;
+  gap:10px;
+  margin-bottom:9px;
+}
+.speed-label{font-size:0.77rem;color:var(--text2);}
+.speed-bar-bg{
+  background:var(--bg3);
+  border-radius:20px;
+  height:12px;
+  overflow:hidden;
+  position:relative;
+}
+.speed-bar{
+  height:100%;
+  border-radius:20px;
+  position:relative;
+}
+.speed-val{
+  font-family:var(--mono);
+  font-size:0.7rem;
+  color:var(--amber);
+  text-align:right;
+}
+
+/* ── ROUTER DIAGRAM ── */
+.router-diagram{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:1.25rem;
+  text-align:center;
+  margin:0.75rem 0;
+  position:relative;
+  overflow:hidden;
+}
+.router-box{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  background:var(--card);
+  border:2px solid var(--amber);
+  border-radius:var(--r-sm);
+  padding:0.7rem 1rem;
+  margin:0 auto 1rem;
+}
+.router-box .icon{font-size:2rem;}
+.router-box span{font-family:var(--mono);font-size:0.65rem;color:var(--amber);letter-spacing:0.1em;}
+.device-row{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:0.5rem;
+}
+.device{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  font-size:0.68rem;
+  color:var(--text2);
+  font-family:var(--mono);
+}
+.device .d-icon{font-size:1.4rem;}
+.signal-wave{
+  width:100%;
+  height:40px;
+  position:relative;
+  margin:-0.5rem 0;
+}
+.wave-line{
+  position:absolute;
+  bottom:0;left:50%;
+  transform:translateX(-50%);
+  border:2px dashed rgba(245,158,11,0.3);
+  border-radius:50%;
+  animation:wave-expand 2s ease-out infinite;
+}
+.wave-line:nth-child(1){width:60px;height:30px;animation-delay:0s;}
+.wave-line:nth-child(2){width:120px;height:60px;animation-delay:0.5s;}
+.wave-line:nth-child(3){width:180px;height:90px;animation-delay:1s;}
+@keyframes wave-expand{
+  0%{opacity:0.8;transform:translateX(-50%) scale(0.5);}
+  100%{opacity:0;transform:translateX(-50%) scale(1.5);}
+}
+
+/* ── SEGURIDAD NIVELES ── */
+.sec-levels{margin:0.75rem 0;}
+.sec-level{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  border-radius:var(--r-sm);
+  margin-bottom:8px;
+  border:1px solid transparent;
+}
+.sec-bad {background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);}
+.sec-ok  {background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.2);}
+.sec-good{background:rgba(34,197,94,0.07);border-color:rgba(34,197,94,0.2);}
+.sec-level .sl-badge{
+  font-family:var(--mono);
+  font-size:0.65rem;
+  font-weight:700;
+  padding:3px 8px;
+  border-radius:3px;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.sec-bad  .sl-badge{background:rgba(239,68,68,0.15);color:#fca5a5;}
+.sec-ok   .sl-badge{background:rgba(245,158,11,0.15);color:var(--amber2);}
+.sec-good .sl-badge{background:rgba(34,197,94,0.15);color:#86efac;}
+.sec-level .sl-name{font-weight:700;font-size:0.88rem;color:var(--text);}
+.sec-level .sl-desc{font-size:0.78rem;color:var(--text2);margin-top:2px;line-height:1.4;}
+
+/* ── PROVEEDOR CARDS ── */
+.prov-card{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.prov-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0.9rem 1.1rem;
+  border-bottom:1px solid var(--border);
+}
+.prov-icon{
+  width:40px;height:40px;
+  border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;
+  flex-shrink:0;
+}
+.prov-name{font-weight:700;font-size:0.95rem;color:var(--text);}
+.prov-type{font-family:var(--mono);font-size:0.65rem;color:var(--amber);letter-spacing:0.08em;margin-top:2px;}
+.prov-body{padding:0.8rem 1.1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;}
+.prov-stat{text-align:center;background:var(--card);border-radius:var(--r-sm);padding:0.6rem;}
+.prov-stat .ps-val{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--amber2);}
+.prov-stat .ps-label{font-size:0.68rem;color:var(--text3);margin-top:2px;}
+.prov-zones{padding:0 1.1rem 0.8rem;}
+.prov-zones p{font-size:0.77rem;color:var(--text2);}
+.zona-tag{
+  display:inline-block;
+  font-size:0.68rem;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:2px 7px;
+  margin:2px;
+  font-family:var(--mono);
+  color:var(--text2);
+}
+
+/* ── TIPS CASA ── */
+.tips-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:10px;
+  margin:0.75rem 0;
+}
+.tip-card{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:1rem;
+  display:flex;
+  gap:12px;
+}
+.tc-num{
+  font-family:var(--display);
+  font-size:2.5rem;
+  line-height:1;
+  color:var(--amber);
+  opacity:0.3;
+  flex-shrink:0;
+}
+.tc-content h4{font-size:0.88rem;font-weight:700;color:var(--amber2);margin-bottom:4px;}
+.tc-content p{font-size:0.78rem;color:var(--text2);line-height:1.55;}
+.tc-content .tc-tag{
+  display:inline-block;
+  font-size:0.62rem;
+  font-family:var(--mono);
+  background:rgba(245,158,11,0.1);
+  color:var(--amber);
+  padding:2px 6px;
+  border-radius:3px;
+  margin-bottom:5px;
+}
+
+/* ── UNIDADES INTERACTIVO ── */
+.converter{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:1.1rem 1.25rem;
+  margin:0.75rem 0;
+}
+.conv-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:0.75rem;}
+.conv-row label{font-size:0.82rem;color:var(--text2);font-family:var(--mono);}
+.conv-row input[type=range]{flex:1;min-width:120px;}
+.conv-val{
+  font-family:var(--mono);
+  font-size:1.1rem;
+  font-weight:700;
+  color:var(--amber2);
+  min-width:80px;
+}
+.conv-result-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:8px;
+  margin-top:0.5rem;
+}
+.conv-item{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:0.6rem 0.8rem;
+  text-align:center;
+}
+.conv-item .ci-val{font-family:var(--mono);font-size:0.9rem;font-weight:700;color:var(--amber2);}
+.conv-item .ci-unit{font-size:0.7rem;color:var(--text3);margin-top:2px;}
+.conv-time{
+  margin-top:0.75rem;
+  padding:0.7rem 1rem;
+  background:var(--card);
+  border-radius:var(--r-sm);
+  border-left:3px solid var(--orange);
+  font-size:0.82rem;
+  color:var(--text2);
+}
+.conv-time strong{color:var(--amber2);font-family:var(--mono);}
+
+/* ── SEPARADOR ── */
+.sep{border:none;border-top:1px solid var(--border);margin:1rem 0;}
+
+/* ── QUIZ ── */
+.quiz-q{font-size:0.95rem;font-weight:600;color:var(--text);margin-bottom:0.75rem;line-height:1.5;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:0.65rem 1rem;
+  cursor:pointer;
+  font-size:0.85rem;
+  color:var(--text2);
+  text-align:left;
+  transition:all 0.2s;
+  font-family:var(--body);
+}
+.quiz-opt:hover{border-color:var(--amber);color:var(--text);}
+.quiz-opt.correct{background:rgba(34,197,94,0.1);border-color:var(--green);color:#86efac;}
+.quiz-opt.wrong  {background:rgba(239,68,68,0.08);border-color:var(--red);color:#fca5a5;}
+.quiz-fb{font-size:0.82rem;margin-top:8px;padding:0.6rem 0.9rem;border-radius:var(--r-sm);display:none;}
+.quiz-fb.show{display:block;}
+.quiz-fb.ok  {background:rgba(34,197,94,0.08);color:#86efac;}
+.quiz-fb.fail{background:rgba(239,68,68,0.08);color:#fca5a5;}
+
+/* ── FREQUENCY BADGE ── */
+.freq-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:0.72rem;font-weight:700;
+  padding:3px 9px;border-radius:3px;
+}
+.f24{background:rgba(56,189,248,0.12);color:var(--blue);border:1px solid rgba(56,189,248,0.25);}
+.f50{background:rgba(245,158,11,0.12);color:var(--amber2);border:1px solid rgba(245,158,11,0.25);}
+
+/* FOOTER */
+footer{
+  border-top:2px solid var(--amber);
+  margin-top:3rem;
+  padding:1.5rem 0;
+  text-align:center;
+  font-size:0.75rem;
+  color:var(--text3);
+}
+footer strong{color:var(--amber);}
+</style>
+</head>
+<body>
+
+<canvas id="signal-canvas"></canvas>
+
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div class="chip">MÓDULO 2 · COMPLEMENTO · NIVEL SECUNDARIO</div>
+    <div class="signal-icon">
+      <span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+  <h1>WIFI &amp;<br><em>CONECTIVIDAD</em></h1>
+  <p>Cómo llega Internet a tu casa, qué es el router, cómo mejorar la señal y qué servicios hay en Argentina</p>
+</header>
+
+<!-- NAV -->
+<nav class="sticky-nav">
+  <button class="nav-btn active" onclick="scrollTo('s1',this)">01 · WiFi</button>
+  <button class="nav-btn" onclick="scrollTo('s2',this)">02 · Router</button>
+  <button class="nav-btn" onclick="scrollTo('s3',this)">03 · Seguridad</button>
+  <button class="nav-btn" onclick="scrollTo('s4',this)">04 · Ancho de banda</button>
+  <button class="nav-btn" onclick="scrollTo('s5',this)">05 · Unidades</button>
+  <button class="nav-btn" onclick="scrollTo('s6',this)">06 · Servicios AR</button>
+  <button class="nav-btn" onclick="scrollTo('s7',this)">07 · Tips hogar</button>
+  <button class="nav-btn" onclick="scrollTo('s8',this)">08 · Configurar router</button>
+  <button class="nav-btn" onclick="scrollTo('s9',this)">09 · Equipos y marcas</button>
+  <button class="nav-btn" onclick="scrollTo('s10',this)">10 · Modo repetidor</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S1 · QUÉ ES EL WIFI -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="section-label">
+    <span class="num">01</span>
+    <div>
+      <h2>¿QUÉ ES EL WIFI?</h2>
+      <div class="sub">Wireless Fidelity — conexión sin cables</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">DEFINICIÓN</div>
+    <p class="def-text"><strong>WiFi</strong> es una tecnología que permite conectar dispositivos a una red de datos <strong>sin usar cables</strong>, usando ondas de radio. El nombre oficial es <strong>IEEE 802.11</strong>, pero todos lo conocemos como WiFi. El router recibe la señal de Internet y la "irradia" al aire, igual que una radio AM/FM, pero a mucha más distancia y velocidad.</p>
+  </div>
+
+  <div class="tip-box">
+    <span class="t-icon">💡</span>
+    <p><strong>Para entenderlo:</strong> Pensá en el router como un faro en el medio del campo: manda luz (señal) en todas las direcciones. Cuanto más lejos estés del faro, más débil llega la luz. Si hay un cerro (pared de hormigón) en el medio, la señal se corta.</p>
+  </div>
+
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:0.75rem 0;">
+    <div style="padding:0.65rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+      <span style="color:var(--red);font-size:1.1rem;">▶</span>
+      <span style="font-family:var(--mono);font-size:0.72rem;color:var(--text2);">VIDEO · <strong style="color:var(--amber);">¿Qué es una red WiFi?</strong> — Explicación en español</span>
+    </div>
+    <div style="position:relative;width:100%;aspect-ratio:16/9;">
+      <iframe
+        src="https://www.youtube.com/embed/l45Ip3s2tWM"
+        title="¿Qué es una red WiFi?"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        style="position:absolute;inset:0;width:100%;height:100%;border:none;">
+      </iframe>
+    </div>
+    <div style="padding:0.5rem 1rem;background:var(--card);border-top:1px solid var(--border);font-size:0.72rem;color:var(--text3);display:flex;align-items:center;gap:6px;">
+      <span>📝</span> Mirá el video y después seguí leyendo para entender las frecuencias 2.4 y 5 GHz
+    </div>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">DOS FRECUENCIAS: 2.4 GHz vs 5 GHz</h3>
+
+  <div class="g2">
+    <div class="card">
+      <div style="margin-bottom:8px;"><span class="freq-badge f24">📡 2.4 GHz</span></div>
+      <p style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:4px;">Más alcance, menos velocidad</p>
+      <p style="font-size:0.8rem;color:var(--text2);line-height:1.55;">Llega más lejos y atraviesa mejor las paredes. Ideal para el patio, el galpón o cuando estás lejos del router. Velocidad: hasta ~150 Mbps en la práctica.</p>
+      <div class="tip-box" style="margin-top:8px;">
+        <span class="t-icon" style="font-size:1rem;">🐄</span>
+        <p style="font-size:0.75rem;"><strong>Rural:</strong> Si el router está en la casa y el galpón está a 30 metros, usá 2.4 GHz.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div style="margin-bottom:8px;"><span class="freq-badge f50">📡 5 GHz</span></div>
+      <p style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:4px;">Menos alcance, más velocidad</p>
+      <p style="font-size:0.8rem;color:var(--text2);line-height:1.55;">Muy rápida pero llega menos lejos y las paredes la frenan más. Ideal para la misma habitación que el router. Velocidad: hasta ~400–900 Mbps.</p>
+      <div class="tip-box" style="margin-top:8px;">
+        <span class="t-icon" style="font-size:1rem;">🎮</span>
+        <p style="font-size:0.75rem;"><strong>Consejo:</strong> Para videollamadas y streaming en la misma pieza, usá 5 GHz.</p>
+      </div>
+    </div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>Característica</th><th>2.4 GHz</th><th>5 GHz</th></tr></thead>
+    <tbody>
+      <tr><td>Alcance</td><td>~35 m interior / 100 m exterior</td><td>~15 m interior</td></tr>
+      <tr><td>Penetra paredes</td><td>Mejor</td><td>Peor</td></tr>
+      <tr><td>Velocidad máxima</td><td>~150 Mbps</td><td>~900 Mbps</td></tr>
+      <tr><td>Interferencia</td><td>Alta (micros, celulares, vecinos)</td><td>Baja</td></tr>
+      <tr><td>Ideal para</td><td>Dispositivos lejos, IoT</td><td>Gaming, streaming HD</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S2 · EL ROUTER -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-label">
+    <span class="num">02</span>
+    <div>
+      <h2>EL ROUTER</h2>
+      <div class="sub">El cerebro de tu red doméstica</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">DEFINICIÓN</div>
+    <p class="def-text">El <strong>router</strong> (se pronuncia "rúter") es el dispositivo que <strong>recibe la señal de Internet del proveedor</strong> (por cable, fibra óptica o satelital) y la distribuye a todos los dispositivos de tu casa, tanto por cable (Ethernet) como de forma inalámbrica (WiFi). También actúa como <strong>firewall básico</strong>: protege tu red de conexiones externas no autorizadas.</p>
+  </div>
+
+  <!-- Diagrama visual -->
+  <div class="router-diagram">
+    <p style="font-family:var(--mono);font-size:0.68rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.75rem;">ESQUEMA DE RED DOMÉSTICA</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap;">
+      <div class="mc" style="text-align:center;padding:0.6rem 0.8rem;flex-shrink:0;">
+        <div style="font-size:1.5rem;">🌐</div>
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--text3);margin-top:3px;">INTERNET</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:0.75rem;color:var(--amber);flex-shrink:0;">── cable/fibra ──▶</div>
+      <div class="router-box" style="flex-shrink:0;">
+        <div class="icon">📡</div>
+        <span>ROUTER / MÓDEM</span>
+      </div>
+    </div>
+    <div style="position:relative;height:48px;">
+      <div class="wave-line"></div>
+      <div class="wave-line"></div>
+      <div class="wave-line"></div>
+    </div>
+    <div class="device-row">
+      <div class="device"><div class="d-icon">💻</div>PC / Notebook</div>
+      <div class="device"><div class="d-icon">📱</div>Celular</div>
+      <div class="device"><div class="d-icon">📺</div>Smart TV</div>
+      <div class="device"><div class="d-icon">🎮</div>Consola</div>
+      <div class="device"><div class="d-icon">🖨️</div>Impresora</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">PARTES DEL ROUTER</h3>
+  <div class="g4">
+    <div class="mc"><div class="mc-icon">📡</div><h4>Antenas</h4><p>Irradian la señal WiFi. Más antenas = mejor cobertura en múltiples direcciones.</p></div>
+    <div class="mc"><div class="mc-icon">🔌</div><h4>Puerto WAN</h4><p>Entrada del cable del proveedor de Internet. Generalmente de color diferente.</p></div>
+    <div class="mc"><div class="mc-icon">🔗</div><h4>Puertos LAN</h4><p>Para conectar dispositivos por cable Ethernet. Más estable que WiFi.</p></div>
+    <div class="mc"><div class="mc-icon">💡</div><h4>LEDs indicadores</h4><p>Muestran el estado: energía, Internet, WiFi activo, dispositivos conectados.</p></div>
+    <div class="mc"><div class="mc-icon">🔄</div><h4>Botón Reset</h4><p>Devuelve el router a configuración de fábrica. Útil si olvidaste la contraseña.</p></div>
+    <div class="mc"><div class="mc-icon">🔁</div><h4>Botón WPS</h4><p>Conecta dispositivos sin escribir la contraseña, apretando el botón.</p></div>
+  </div>
+
+  <div class="warn-box" style="margin-top:0.5rem;">
+    <span class="t-icon">⚠️</span>
+    <p><strong>¡Cuidado!</strong> Nunca presiones Reset a menos que sea necesario. Borra toda la configuración que hizo el técnico del proveedor y puede dejar sin Internet a toda la casa.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S3 · SEGURIDAD WIFI -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-label">
+    <span class="num">03</span>
+    <div>
+      <h2>SEGURIDAD WIFI</h2>
+      <div class="sub">Protegé tu red de intrusos</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">POR QUÉ IMPORTA</div>
+    <p class="def-text">Una red WiFi sin contraseña o mal protegida es como dejar la puerta de tu casa abierta. Cualquier vecino o persona cercana puede <strong>conectarse gratis a tu Internet</strong>, <strong>ver tu tráfico</strong> o incluso <strong>acceder a los archivos</strong> compartidos en tu red. En zonas rurales esto importa cuando hay casas de peones, galpones o visitantes cerca.</p>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">TIPOS DE CIFRADO — DEL PEOR AL MEJOR</h3>
+  <div class="sec-levels">
+    <div class="sec-level sec-bad">
+      <span class="sl-badge">❌ PELIGROSO</span>
+      <div>
+        <div class="sl-name">Sin contraseña (Red abierta)</div>
+        <div class="sl-desc">Cualquiera puede conectarse. Nunca uses una red abierta para cosas importantes como home banking o datos personales.</div>
+      </div>
+    </div>
+    <div class="sec-level sec-bad">
+      <span class="sl-badge">❌ OBSOLETO</span>
+      <div>
+        <div class="sl-name">WEP (Wired Equivalent Privacy)</div>
+        <div class="sl-desc">El primer estándar de seguridad WiFi. Fue hackeado en 2001. Ya no se usa, pero algunos routers viejos lo ofrecen. No lo elijas.</div>
+      </div>
+    </div>
+    <div class="sec-level sec-ok">
+      <span class="sl-badge">⚠️ ACEPTABLE</span>
+      <div>
+        <div class="sl-name">WPA (WiFi Protected Access)</div>
+        <div class="sl-desc">Mejor que WEP pero tiene vulnerabilidades conocidas. Si tu router solo ofrece esto, actualizá el firmware o cambiá el router.</div>
+      </div>
+    </div>
+    <div class="sec-level sec-good">
+      <span class="sl-badge">✓ RECOMENDADO</span>
+      <div>
+        <div class="sl-name">WPA2-AES</div>
+        <div class="sl-desc">El estándar actual. Seguro y compatible con todos los dispositivos modernos. Es lo que debés tener configurado.</div>
+      </div>
+    </div>
+    <div class="sec-level sec-good">
+      <span class="sl-badge">✓✓ MEJOR</span>
+      <div>
+        <div class="sl-name">WPA3</div>
+        <div class="sl-desc">El más moderno y seguro. Disponible en routers nuevos. Protege incluso si la contraseña es corta. Usalo si tu router lo soporta.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">BUENAS PRÁCTICAS DE SEGURIDAD</h3>
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tc-num">1</div>
+      <div class="tc-content">
+        <div class="tc-tag">CONTRASEÑA</div>
+        <h4>Usá contraseñas largas y raras</h4>
+        <p>Mínimo 12 caracteres. Mezclá letras, números y símbolos. Ejemplo fuerte: <span style="font-family:var(--mono);color:var(--amber2);font-size:0.75rem;">Vaca&Girasol#2024</span>. Evitá tu nombre, DNI o fecha de nacimiento.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">2</div>
+      <div class="tc-content">
+        <div class="tc-tag">RED DE INVITADOS</div>
+        <h4>Creá una red separada para visitas</h4>
+        <p>Los routers modernos permiten crear una "red de invitados". Las visitas se conectan ahí y no pueden ver tus archivos ni dispositivos de la red principal.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">3</div>
+      <div class="tc-content">
+        <div class="tc-tag">ROUTER</div>
+        <h4>Cambiá el usuario/contraseña del panel de administración</h4>
+        <p>El panel del router (que se abre en <span style="font-family:var(--mono);color:var(--amber2);font-size:0.75rem;">192.168.1.1</span>) viene con usuario "admin" y contraseña "admin" de fábrica. Cambialo enseguida.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">4</div>
+      <div class="tc-content">
+        <div class="tc-tag">ACTUALIZACIONES</div>
+        <h4>Actualizá el firmware del router</h4>
+        <p>Los fabricantes publican actualizaciones que corrigen problemas de seguridad. Entrá al panel del router cada 6 meses y buscá actualizaciones.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">5</div>
+      <div class="tc-content">
+        <div class="tc-tag">NOMBRE DE RED</div>
+        <h4>No uses tu nombre en el SSID</h4>
+        <p>El SSID es el nombre de tu WiFi. Evitá poner "WiFi de los González" o tu dirección. Eso le da info a un atacante. Mejor algo neutro: "Red_Casa" o "Palomar7".</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">6</div>
+      <div class="tc-content">
+        <div class="tc-tag">REDES PÚBLICAS</div>
+        <h4>Cuidado con el WiFi del pueblo</h4>
+        <p>En las plazas, bares o terminales rurales, el WiFi público no cifra tus datos. Nunca hagas home banking ni inicies sesión en cuentas importantes desde ahí.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <hr class="sep">
+  <p class="quiz-q">🧠 Pregunta: ¿Cuál es el tipo de seguridad WiFi más recomendado hoy en día?</p>
+  <div class="quiz-opts">
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf1')">WEP</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf1')">Sin contraseña</button>
+    <button class="quiz-opt" onclick="qCheck(this,'correct','qf1')">WPA2-AES o WPA3</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf1')">WPA (solo)</button>
+  </div>
+  <div class="quiz-fb" id="qf1"></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S4 · ANCHO DE BANDA -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-label">
+    <span class="num">04</span>
+    <div>
+      <h2>ANCHO DE BANDA</h2>
+      <div class="sub">Velocidad, capacidad y la diferencia que hace</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">DEFINICIÓN</div>
+    <p class="def-text">El <strong>ancho de banda</strong> es la cantidad máxima de datos que puede pasar por una conexión en un segundo. Se mide en <strong>bits por segundo (bps)</strong> y sus múltiplos. No confundir con <em>velocidad de disco</em> (que usa bytes). La <strong>latencia</strong> es el tiempo que tarda un paquete en ir y volver: en juegos online y videollamadas importa más que el ancho de banda.</p>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <p style="font-size:0.82rem;font-weight:700;color:var(--amber2);margin-bottom:6px;">📥 Bajada (Download)</p>
+      <p style="font-size:0.8rem;color:var(--text2);line-height:1.55;">Velocidad a la que recibís datos. Importa para ver YouTube, Netflix, descargar archivos, abrir páginas web.</p>
+    </div>
+    <div class="card">
+      <p style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:6px;">📤 Subida (Upload)</p>
+      <p style="font-size:0.8rem;color:var(--text2);line-height:1.55;">Velocidad a la que enviás datos. Importa para videollamadas, subir fotos a Drive, mandar videos por WhatsApp.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">¿CUÁNTA VELOCIDAD NECESITÁS? — GUÍA PRÁCTICA</h3>
+  <div class="speed-grid">
+    <div class="speed-row">
+      <span class="speed-label">WhatsApp / Chat</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:3%;background:var(--green);"></div></div>
+      <span class="speed-val">1 Mbps</span>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">Videollamada HD</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:8%;background:var(--green);"></div></div>
+      <span class="speed-val">3–5 Mbps</span>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">YouTube / Netflix SD</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:12%;background:var(--green);"></div></div>
+      <span class="speed-val">5 Mbps</span>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">Netflix Full HD</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:25%;background:var(--amber);"></div></div>
+      <span class="speed-val">25 Mbps</span>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">Netflix 4K UHD</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:50%;background:var(--amber);"></div></div>
+      <span class="speed-val">50 Mbps</span>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">Gaming online</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:30%;background:var(--blue);"></div></div>
+      <span class="speed-val">30 Mbps + latencia baja</span>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">5 usuarios a la vez</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:60%;background:var(--orange);"></div></div>
+      <span class="speed-val">50–100 Mbps</span>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">Fibra óptica AR</span>
+      <div class="speed-bar-bg"><div class="speed-bar" style="width:100%;background:linear-gradient(90deg,var(--amber),var(--orange));"></div></div>
+      <span class="speed-val">300–1000 Mbps</span>
+    </div>
+  </div>
+  <p style="font-size:0.72rem;color:var(--text3);margin-top:0.25rem;">* Velocidades mínimas recomendadas por actividad</p>
+
+  <div class="tip-box" style="margin-top:0.75rem;">
+    <span class="t-icon">🐄</span>
+    <p><strong>Para una casa rural con 3–4 personas:</strong> Con 15–20 Mbps es suficiente para uso normal (WhatsApp, YouTube en SD, tareas escolares). Para clases en Zoom de varios alumnos al mismo tiempo, lo ideal es 50 Mbps o más.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S5 · UNIDADES -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-label">
+    <span class="num">05</span>
+    <div>
+      <h2>UNIDADES DE DATOS</h2>
+      <div class="sub">Megabit vs Megabyte — la confusión más grande de las telecomunicaciones</div>
+    </div>
+  </div>
+
+  <!-- LA GRAN DISTINCIÓN -->
+  <div style="background:rgba(245,158,11,0.06);border:2px solid rgba(245,158,11,0.3);border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;">
+    <p style="font-family:var(--mono);font-size:0.7rem;color:var(--amber);letter-spacing:0.1em;margin-bottom:0.75rem;">⚡ EL PUNTO MÁS IMPORTANTE DE ESTA SECCIÓN</p>
+    <p style="font-size:0.95rem;line-height:1.7;color:var(--text);">Existen <strong style="color:var(--amber2);">dos mundos de medición</strong> que conviven y se confunden todo el tiempo:</p>
+    <div class="g2" style="margin-top:0.75rem;">
+      <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:var(--r-sm);padding:0.85rem 1rem;">
+        <p style="font-family:var(--mono);font-size:0.7rem;color:var(--blue);margin-bottom:5px;letter-spacing:0.08em;">TELECOMUNICACIONES (VELOCIDAD)</p>
+        <p style="font-size:1.4rem;font-weight:800;color:var(--blue);font-family:var(--mono);">Mb / Mbps</p>
+        <p style="font-size:0.78rem;color:var(--text2);margin-top:4px;line-height:1.5;">Usa <strong style="color:var(--blue);">bits</strong> (b minúscula). Así miden la velocidad los proveedores de Internet, el WiFi y las redes celulares.</p>
+        <p style="font-size:0.75rem;color:var(--text3);margin-top:6px;font-style:italic;">Ej: "Plan 100 Mbps" → 100 Megabits por segundo</p>
+      </div>
+      <div style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.22);border-radius:var(--r-sm);padding:0.85rem 1rem;">
+        <p style="font-family:var(--mono);font-size:0.7rem;color:var(--green);margin-bottom:5px;letter-spacing:0.08em;">ALMACENAMIENTO (TAMAÑO)</p>
+        <p style="font-size:1.4rem;font-weight:800;color:var(--green);font-family:var(--mono);">MB / GB</p>
+        <p style="font-size:0.78rem;color:var(--text2);margin-top:4px;line-height:1.5;">Usa <strong style="color:var(--green);">Bytes</strong> (B mayúscula). Así se mide el tamaño de archivos, fotos, videos, aplicaciones y discos.</p>
+        <p style="font-size:0.75rem;color:var(--text3);margin-top:6px;font-style:italic;">Ej: "Una foto ocupa 3 MB" → 3 Megabytes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LA CLAVE: 1 BYTE = 8 BITS -->
+  <div class="def-block" style="border-color:var(--orange);">
+    <div class="def-label" style="color:var(--orange);">LA FÓRMULA QUE TENÉS QUE SABER</div>
+    <p class="def-text" style="font-size:1rem;text-align:center;padding:0.5rem 0;">
+      <span style="font-family:var(--mono);font-size:1.3rem;color:var(--amber2);">1 Byte = 8 bits</span>
+      <br><br>
+      Por eso, para convertir velocidad (Mbps) a velocidad de descarga real (MB/s), <strong style="color:var(--amber2);">dividís por 8</strong>.
+      <br><br>
+      <span style="font-family:var(--mono);font-size:0.9rem;color:var(--text2);">100 Mbps ÷ 8 = <strong style="color:var(--green);">12,5 MB/s</strong> de descarga real</span>
+    </p>
+  </div>
+
+  <div class="tip-box">
+    <span class="t-icon">🐄</span>
+    <p><strong>Ejemplo concreto:</strong> Tu proveedor te vende un plan de <strong>50 Mbps</strong>. Descargás una app de <strong>200 MB</strong>. ¿Cuánto tarda? → 50 Mbps ÷ 8 = 6,25 MB/s de descarga real → 200 MB ÷ 6,25 = <strong>~32 segundos</strong>. Eso es lo que ves en la barra de progreso.</p>
+  </div>
+
+  <!-- TABLA TELECOMUNICACIONES -->
+  <h3 style="font-size:0.82rem;color:var(--blue);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">📡 MUNDO TELECOMUNICACIONES — VELOCIDAD (bits)</h3>
+  <table class="tbl">
+    <thead><tr><th>Unidad</th><th>Símbolo</th><th>Equivale a</th><th>Ejemplo real</th></tr></thead>
+    <tbody>
+      <tr><td>bit</td><td style="font-family:var(--mono);color:var(--blue);">b</td><td>Mínima unidad (0 ó 1)</td><td>Un "sí" o "no" digital</td></tr>
+      <tr><td>Kilobit por segundo</td><td style="font-family:var(--mono);color:var(--blue);">Kbps</td><td>1.000 bits/seg</td><td>Conexión dial-up antigua (56 Kbps)</td></tr>
+      <tr><td>Megabit por segundo</td><td style="font-family:var(--mono);color:var(--blue);">Mbps</td><td>1.000.000 bits/seg</td><td>Plan hogareño típico (50–200 Mbps)</td></tr>
+      <tr><td>Gigabit por segundo</td><td style="font-family:var(--mono);color:var(--blue);">Gbps</td><td>1.000 Mbps</td><td>Fibra óptica de alta gama (1 Gbps)</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.72rem;color:var(--text3);margin-bottom:0.5rem;">⚠️ En telecomunicaciones se usa el sistema decimal (1 Kbps = 1.000 bps, no 1.024)</p>
+
+  <!-- TABLA ALMACENAMIENTO -->
+  <h3 style="font-size:0.82rem;color:var(--green);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">💾 MUNDO ALMACENAMIENTO — TAMAÑO (Bytes)</h3>
+  <table class="tbl">
+    <thead><tr><th>Unidad</th><th>Símbolo</th><th>Equivale a</th><th>Ejemplo real</th></tr></thead>
+    <tbody>
+      <tr><td>Byte</td><td style="font-family:var(--mono);color:var(--green);">B</td><td>8 bits</td><td>Una letra o número</td></tr>
+      <tr><td>Kilobyte</td><td style="font-family:var(--mono);color:var(--green);">KB</td><td>1.024 Bytes</td><td>Un mensaje de texto largo</td></tr>
+      <tr><td>Megabyte</td><td style="font-family:var(--mono);color:var(--green);">MB</td><td>1.024 KB</td><td>Una foto del celular (2–5 MB)</td></tr>
+      <tr><td>Gigabyte</td><td style="font-family:var(--mono);color:var(--green);">GB</td><td>1.024 MB</td><td>Película en HD (1–4 GB) · 1 hora de video 4K (~7 GB)</td></tr>
+      <tr><td>Terabyte</td><td style="font-family:var(--mono);color:var(--green);">TB</td><td>1.024 GB</td><td>Disco externo de PC (1–4 TB)</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.72rem;color:var(--text3);margin-bottom:0.5rem;">ℹ️ En almacenamiento se usa el sistema binario (1 KB = 1.024 B)</p>
+
+  <!-- TABLA CONVERSIÓN RÁPIDA -->
+  <h3 style="font-size:0.82rem;color:var(--amber);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">🔄 TABLA DE CONVERSIÓN: VELOCIDAD DEL PLAN → DESCARGA REAL</h3>
+  <table class="tbl">
+    <thead><tr><th>Plan del proveedor</th><th>÷ 8 =</th><th>Velocidad de descarga real</th><th>¿Qué podés bajar en 1 minuto?</th></tr></thead>
+    <tbody>
+      <tr><td>10 Mbps</td><td style="font-family:var(--mono);color:var(--amber);">÷ 8</td><td>1,25 MB/s</td><td>~75 MB (unas 25 fotos del celular)</td></tr>
+      <tr><td>50 Mbps</td><td style="font-family:var(--mono);color:var(--amber);">÷ 8</td><td>6,25 MB/s</td><td>~375 MB (media película en HD)</td></tr>
+      <tr><td>100 Mbps</td><td style="font-family:var(--mono);color:var(--amber);">÷ 8</td><td>12,5 MB/s</td><td>~750 MB (casi una película completa)</td></div></td></tr>
+      <tr><td>300 Mbps</td><td style="font-family:var(--mono);color:var(--amber);">÷ 8</td><td>37,5 MB/s</td><td>~2,25 GB (una película completa en 4K)</td></tr>
+      <tr><td>1000 Mbps (1 Gbps)</td><td style="font-family:var(--mono);color:var(--amber);">÷ 8</td><td>125 MB/s</td><td>~7,5 GB (una película 4K en solo 1 min)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-box" style="margin-top:0.75rem;">
+    <span class="t-icon">⚠️</span>
+    <p><strong>¿Por qué la descarga real es siempre menos que lo anunciado?</strong> Primero porque Mbps ≠ MB/s (dividís por 8). Segundo porque hay overhead de protocolo, interferencias WiFi, distancia al servidor y la capacidad del servidor mismo. En la práctica, una conexión de 100 Mbps rara vez da más de 10–11 MB/s reales.</p>
+  </div>
+
+  <!-- CONVERSOR INTERACTIVO -->
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">🧮 CALCULADORA: ¿CUÁNTO TARDA EN DESCARGAR?</h3>
+  <div class="converter">
+    <div class="conv-row">
+      <label>Mi plan es de:</label>
+      <input type="range" id="speed-slider" min="1" max="500" value="20" step="1" oninput="updateConverter()">
+      <span class="conv-val" id="speed-out">20 Mbps</span>
+    </div>
+    <div style="text-align:center;margin-bottom:0.5rem;">
+      <span style="font-family:var(--mono);font-size:0.75rem;color:var(--text3);">Velocidad de descarga real: </span>
+      <span style="font-family:var(--mono);font-size:0.85rem;color:var(--green);font-weight:700;" id="real-speed">—</span>
+    </div>
+    <div class="conv-result-grid">
+      <div class="conv-item"><div class="ci-val" id="c-foto">—</div><div class="ci-unit">📷 Foto (3 MB)</div></div>
+      <div class="conv-item"><div class="ci-val" id="c-cancion">—</div><div class="ci-unit">🎵 Canción (5 MB)</div></div>
+      <div class="conv-item"><div class="ci-val" id="c-app">—</div><div class="ci-unit">📱 App (100 MB)</div></div>
+      <div class="conv-item"><div class="ci-val" id="c-peli">—</div><div class="ci-unit">🎬 Película HD (4 GB)</div></div>
+    </div>
+    <div class="conv-time" id="conv-context"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <hr class="sep">
+  <p class="quiz-q">🧠 Un plan de Internet de 80 Mbps, ¿cuántos MB/s de descarga real te da aproximadamente?</p>
+  <div class="quiz-opts">
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf2')">80 MB/s — es lo mismo</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf2')">0,8 MB/s</button>
+    <button class="quiz-opt" onclick="qCheck(this,'correct','qf2')">10 MB/s (80 ÷ 8)</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf2')">640 MB/s</button>
+  </div>
+  <div class="quiz-fb" id="qf2"></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S6 · SERVICIOS EN ARGENTINA -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-label">
+    <span class="num">06</span>
+    <div>
+      <h2>SERVICIOS EN ARGENTINA</h2>
+      <div class="sub">Tipos de conexión y proveedores reales</div>
+    </div>
+  </div>
+
+  <p style="font-size:0.88rem;color:var(--text2);margin-bottom:1rem;line-height:1.6;">Argentina tiene cinco tecnologías principales de acceso a Internet. Cada una llega diferente según si vivís en ciudad, pueblo o campo.</p>
+
+  <!-- FIBRA ÓPTICA -->
+  <div class="prov-card">
+    <div class="prov-header">
+      <div class="prov-icon" style="background:rgba(56,189,248,0.12);">💎</div>
+      <div>
+        <div class="prov-name">Fibra Óptica (FTTH)</div>
+        <div class="prov-type">FIBER TO THE HOME — LA MÁS RÁPIDA</div>
+      </div>
+    </div>
+    <div class="prov-body">
+      <div class="prov-stat"><div class="ps-val">100–1000</div><div class="ps-label">Mbps bajada</div></div>
+      <div class="prov-stat"><div class="ps-val">50–500</div><div class="ps-label">Mbps subida</div></div>
+      <div class="prov-stat"><div class="ps-val">&lt;10ms</div><div class="ps-label">Latencia</div></div>
+      <div class="prov-stat"><div class="ps-val">$15k–40k</div><div class="ps-label">Precio mes (ref. 2024)</div></div>
+    </div>
+    <div class="prov-zones">
+      <p style="margin-bottom:5px;font-size:0.78rem;color:var(--text2);">La señal viaja por cables de vidrio a la velocidad de la luz. Simétrica, estable, sin cortes por lluvia.</p>
+      <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">PROVEEDORES:</strong></p>
+      <span class="zona-tag">Telecentro (AMBA)</span>
+      <span class="zona-tag">Fibertel / Claro Hogar</span>
+      <span class="zona-tag">Personal Flow</span>
+      <span class="zona-tag">Cooperativas eléctricas (interior)</span>
+      <span class="zona-tag">CableVisión / Fibertel</span>
+      <span class="zona-tag">Colsecor (Córdoba/interior)</span>
+      <p style="margin-top:8px;font-size:0.75rem;color:var(--text3);">⚠️ Disponible principalmente en ciudades grandes y medianas. En zonas rurales es escasa o inexistente.</p>
+    </div>
+  </div>
+
+  <!-- ADSL -->
+  <div class="prov-card">
+    <div class="prov-header">
+      <div class="prov-icon" style="background:rgba(245,158,11,0.1);">📞</div>
+      <div>
+        <div class="prov-name">ADSL (por línea telefónica)</div>
+        <div class="prov-type">ASYMMETRIC DIGITAL SUBSCRIBER LINE — EN RETIRADA</div>
+      </div>
+    </div>
+    <div class="prov-body">
+      <div class="prov-stat"><div class="ps-val">1–20</div><div class="ps-label">Mbps bajada</div></div>
+      <div class="prov-stat"><div class="ps-val">0.5–2</div><div class="ps-label">Mbps subida</div></div>
+      <div class="prov-stat"><div class="ps-val">20–50ms</div><div class="ps-label">Latencia</div></div>
+      <div class="prov-stat"><div class="ps-val">$5k–12k</div><div class="ps-label">Precio mes (ref.)</div></div>
+    </div>
+    <div class="prov-zones">
+      <p style="margin-bottom:5px;font-size:0.78rem;color:var(--text2);">Usa el cable de teléfono fijo para transmitir datos. Más lento cuanto más lejos estés de la central telefónica. Tecnología en proceso de reemplazo por fibra.</p>
+      <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">PROVEEDORES:</strong></p>
+      <span class="zona-tag">Telecom / Personal</span>
+      <span class="zona-tag">Movistar (Telefónica)</span>
+      <span class="zona-tag">Municipios con central local</span>
+      <p style="margin-top:8px;font-size:0.75rem;color:var(--text3);">ℹ️ Fue la conexión más común en Argentina hasta 2015. Hoy se reemplaza por fibra donde es posible.</p>
+    </div>
+  </div>
+
+  <!-- 4G/LTE -->
+  <div class="prov-card">
+    <div class="prov-header">
+      <div class="prov-icon" style="background:rgba(34,197,94,0.1);">📶</div>
+      <div>
+        <div class="prov-name">4G LTE / Internet Móvil</div>
+        <div class="prov-type">RED CELULAR — MUY USADA EN ZONAS RURALES</div>
+      </div>
+    </div>
+    <div class="prov-body">
+      <div class="prov-stat"><div class="ps-val">15–100</div><div class="ps-label">Mbps bajada</div></div>
+      <div class="prov-stat"><div class="ps-val">5–30</div><div class="ps-label">Mbps subida</div></div>
+      <div class="prov-stat"><div class="ps-val">20–60ms</div><div class="ps-label">Latencia</div></div>
+      <div class="prov-stat"><div class="ps-val">Datos limitados</div><div class="ps-label">Cuidado con los GB</div></div>
+    </div>
+    <div class="prov-zones">
+      <p style="margin-bottom:5px;font-size:0.78rem;color:var(--text2);">Usa la red celular (antenas). Muy práctico porque es móvil: funciona con el router 4G de casa o compartiendo datos del celular. Depende de la cobertura de la antena más cercana.</p>
+      <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">PROVEEDORES:</strong></p>
+      <span class="zona-tag">Claro 4G</span>
+      <span class="zona-tag">Personal 4G</span>
+      <span class="zona-tag">Movistar 4G</span>
+      <span class="zona-tag">Telecentro Mobile</span>
+      <p style="margin-top:8px;font-size:0.75rem;color:var(--text3);">🐄 En el campo es la opción más usada. Un router 4G con antena externa puede mejorar mucho la señal si hay cobertura aunque sea débil.</p>
+    </div>
+  </div>
+
+  <!-- 5G -->
+  <div class="prov-card">
+    <div class="prov-header">
+      <div class="prov-icon" style="background:rgba(167,139,250,0.1);">⚡</div>
+      <div>
+        <div class="prov-name">5G</div>
+        <div class="prov-type">QUINTA GENERACIÓN — LLEGANDO A ARGENTINA</div>
+      </div>
+    </div>
+    <div class="prov-body">
+      <div class="prov-stat"><div class="ps-val">100–1000+</div><div class="ps-label">Mbps teórico</div></div>
+      <div class="prov-stat"><div class="ps-val">50–500</div><div class="ps-label">Mbps real aprox.</div></div>
+      <div class="prov-stat"><div class="ps-val">&lt;5ms</div><div class="ps-label">Latencia ideal</div></div>
+      <div class="prov-stat"><div class="ps-val">Ciudades</div><div class="ps-label">Solo zonas urbanas</div></div>
+    </div>
+    <div class="prov-zones">
+      <p style="margin-bottom:5px;font-size:0.78rem;color:var(--text2);">La tecnología del futuro. En Argentina empezó a desplegarse en 2023 en Buenos Aires, Córdoba y Rosario. Velocidades enormes y latencia muy baja. Clave para IoT agrícola, drones y agricultura de precisión.</p>
+      <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">PROVEEDORES (2024):</strong></p>
+      <span class="zona-tag">Claro 5G (AMBA, Córdoba)</span>
+      <span class="zona-tag">Personal 5G (AMBA)</span>
+      <span class="zona-tag">Movistar 5G (en despliegue)</span>
+      <p style="margin-top:8px;font-size:0.75rem;color:var(--text3);">⏳ Al campo y pueblos pequeños tardará varios años en llegar. Requiere muchas antenas nuevas muy cercanas entre sí.</p>
+    </div>
+  </div>
+
+  <!-- SATELITAL -->
+  <div class="prov-card">
+    <div class="prov-header">
+      <div class="prov-icon" style="background:rgba(234,88,12,0.1);">🛰️</div>
+      <div>
+        <div class="prov-name">Internet Satelital</div>
+        <div class="prov-type">LA SOLUCIÓN PARA EL CAMPO — STARLINK Y OTROS</div>
+      </div>
+    </div>
+    <div class="prov-body">
+      <div class="prov-stat"><div class="ps-val">50–200</div><div class="ps-label">Mbps (Starlink)</div></div>
+      <div class="prov-stat"><div class="ps-val">10–40</div><div class="ps-label">Mbps subida</div></div>
+      <div class="prov-stat"><div class="ps-val">20–60ms</div><div class="ps-label">Latencia Starlink</div></div>
+      <div class="prov-stat"><div class="ps-val">$40k–80k</div><div class="ps-label">Precio mes (ref.)</div></div>
+    </div>
+    <div class="prov-zones">
+      <p style="margin-bottom:5px;font-size:0.78rem;color:var(--text2);">La señal sube a un satélite en órbita y baja a tu antena ("dish"). Funciona en cualquier lugar con cielo abierto, sin importar si hay cables o antenas cerca. Starlink (SpaceX) revolucionó el campo argentino desde 2022.</p>
+      <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">PROVEEDORES:</strong></p>
+      <span class="zona-tag">Starlink (SpaceX) — residencial</span>
+      <span class="zona-tag">Starlink Business — empresas</span>
+      <span class="zona-tag">Hughes Net (más lento)</span>
+      <span class="zona-tag">Iridium / VSAT (corporativo)</span>
+      <p style="margin-top:8px;font-size:0.75rem;color:var(--text3);">🐄 Para productores rurales, estancias y escuelas del campo: es la mejor opción donde no llega fibra ni hay buena señal 4G. El equipo tiene costo inicial alto pero la velocidad es excelente.</p>
+    </div>
+  </div>
+
+  <!-- CUADRO COMPARATIVO FINAL -->
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.5rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">CUADRO COMPARATIVO — ¿CUÁL TE CONVIENE?</h3>
+  <div style="overflow-x:auto;">
+  <table class="tbl" style="min-width:600px;">
+    <thead>
+      <tr><th>Tecnología</th><th>Velocidad</th><th>Disponibilidad rural</th><th>Lluvia/corte</th><th>Precio</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Fibra óptica</td><td>⭐⭐⭐⭐⭐</td><td>❌ Casi nula</td><td>Sin efecto</td><td>$$$ – $$$$</td></tr>
+      <tr><td>ADSL</td><td>⭐⭐</td><td>🟡 Donde hay teléfono fijo</td><td>Sin efecto</td><td>$$</td></tr>
+      <tr><td>4G LTE</td><td>⭐⭐⭐</td><td>🟡 Depende de cobertura</td><td>Baja señal</td><td>$$ (datos limitados)</td></tr>
+      <tr><td>5G</td><td>⭐⭐⭐⭐⭐</td><td>❌ Solo ciudades grandes</td><td>Sin efecto</td><td>$$$$</td></tr>
+      <tr><td>Satelital (Starlink)</td><td>⭐⭐⭐⭐</td><td>✅ En todo el país</td><td>Poco efecto</td><td>$$$$ + equipo inicial</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ENLACE RECURSO EXTERNO -->
+  <div style="margin-top:1.25rem;padding:1rem 1.25rem;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:var(--r);display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div style="font-size:1.5rem;flex-shrink:0;">🔗</div>
+    <div style="flex:1;min-width:180px;">
+      <p style="font-size:0.82rem;font-weight:700;color:var(--amber2);margin-bottom:3px;">Recursos adicionales del profe</p>
+      <p style="font-size:0.75rem;color:var(--text2);line-height:1.5;">Material de consulta, suscripciones y recursos digitales complementarios para este módulo.</p>
+    </div>
+    <a href="https://www.impuestito.org/suscripciones" target="_blank" rel="noopener"
+      style="flex-shrink:0;font-family:var(--mono);font-size:0.8rem;color:var(--amber);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);padding:8px 18px;border-radius:4px;text-decoration:none;white-space:nowrap;display:inline-block;"
+      onmouseover="this.style.background='rgba(245,158,11,0.2)'"
+      onmouseout="this.style.background='rgba(245,158,11,0.1)'">
+      impuestito.org/suscripciones →
+    </a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S7 · TIPS HOGAR -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-label">
+    <span class="num">07</span>
+    <div>
+      <h2>MEJORAR EL WIFI EN CASA</h2>
+      <div class="sub">Tips prácticos sin gastar plata</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">ANTES DE LLAMAR AL TÉCNICO</div>
+    <p class="def-text">El 80% de los problemas de señal WiFi se resuelven <strong>sin comprar nada nuevo</strong>. La ubicación del router, las paredes, y cómo están configurados los dispositivos hacen una diferencia enorme. Probá estos tips primero.</p>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">UBICACIÓN DEL ROUTER — LO MÁS IMPORTANTE</h3>
+  <div class="tips-grid">
+    <div class="tip-card">
+      <div class="tc-num">1</div>
+      <div class="tc-content">
+        <div class="tc-tag">GRATIS ✓</div>
+        <h4>Poné el router en el centro de la casa</h4>
+        <p>El router irradia señal en todas las direcciones. Si está en un rincón, la mitad de la señal va hacia afuera. Ubícalo en el centro geométrico de la casa para maximizar cobertura en todos los cuartos.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">2</div>
+      <div class="tc-content">
+        <div class="tc-tag">GRATIS ✓</div>
+        <h4>Levantalo del piso — cuanto más alto, mejor</h4>
+        <p>Las ondas de radio se propagan mejor horizontalmente desde altura. Poné el router en una estantería alta o sobre un mueble, nunca en el piso ni detrás del televisor.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">3</div>
+      <div class="tc-content">
+        <div class="tc-tag">GRATIS ✓</div>
+        <h4>Alejalo de paredes de hormigón y metal</h4>
+        <p>El hormigón armado, las chapas y el aluminio bloquean la señal WiFi casi completamente. El router detrás de una pared de chapa puede perder el 70% de su señal. En casas de campo: evitá ponerlo en habitaciones con paredes muy gruesas.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">4</div>
+      <div class="tc-content">
+        <div class="tc-tag">GRATIS ✓</div>
+        <h4>Alejalo del microondas y teléfonos inalámbricos</h4>
+        <p>El microondas y los teléfonos fijos inalámbricos usan la misma frecuencia (2.4 GHz) que el WiFi. Cuando el microondas está funcionando, puede cortar o degradar tu señal WiFi. Mantenélos al menos a 2 metros del router.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">5</div>
+      <div class="tc-content">
+        <div class="tc-tag">GRATIS ✓</div>
+        <h4>Orientá las antenas correctamente</h4>
+        <p>Si tu router tiene antenas externas, poné una vertical y otra horizontal (en ángulo de 90°). Así cubrís mejor diferentes orientaciones de los dispositivos en la casa.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">6</div>
+      <div class="tc-content">
+        <div class="tc-tag">GRATIS ✓</div>
+        <h4>Reiniciá el router una vez por semana</h4>
+        <p>Los routers tienen poca memoria RAM y se saturan con el tiempo. Un reinicio limpia la memoria y suele mejorar la velocidad. Desenchufá 30 segundos y volvé a enchufar. Muchos routers tienen programación automática de reinicio.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">7</div>
+      <div class="tc-content">
+        <div class="tc-tag">GRATIS ✓</div>
+        <h4>Cambiá el canal WiFi</h4>
+        <p>Si hay muchos vecinos con WiFi en 2.4 GHz, todos "hablan" en los mismos canales y se interfieren. Entrá al panel del router (192.168.1.1) y cambiá el canal a uno menos congestionado: para 2.4 GHz probá los canales 1, 6 o 11.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">8</div>
+      <div class="tc-content">
+        <div class="tc-tag">BAJO COSTO</div>
+        <h4>Usá cable Ethernet para lo que más consume</h4>
+        <p>El cable siempre es más estable y rápido que el WiFi. Conectá por cable la Smart TV, la computadora de escritorio o la consola de juegos. Así liberás el WiFi para celulares y tablets, y mejorás la experiencia de todos.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">9</div>
+      <div class="tc-content">
+        <div class="tc-tag">INVERSIÓN MEDIA</div>
+        <h4>Extensor WiFi o repetidor</h4>
+        <p>Si hay una zona de la casa sin señal, un repetidor WiFi (TP-Link, D-Link, desde $10.000) amplía la cobertura. Poné el repetidor a mitad de camino entre el router y la zona sin señal, no en el punto sin señal.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">10</div>
+      <div class="tc-content">
+        <div class="tc-tag">RURAL 🐄</div>
+        <h4>Antena externa para 4G en el campo</h4>
+        <p>Si usás Internet 4G y la señal es débil, una antena direccional externa apuntando a la antena del operador puede multiplicar la señal. Busca antenas "panel" o "yagi" para 4G/LTE. Se venden en Mercado Libre desde ~$20.000.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box" style="margin-top:0.5rem;">
+    <span class="t-icon">🔍</span>
+    <p><strong>Para medir tu velocidad real:</strong> Entrá a <span style="font-family:var(--mono);color:var(--green);">fast.com</span> o <span style="font-family:var(--mono);color:var(--green);">speedtest.net</span> desde el celular o la PC. Hacelo con el dispositivo cerca del router y luego lejos, para ver cuánto pierde la señal con la distancia.</p>
+  </div>
+
+  <!-- QUIZ FINAL -->
+  <hr class="sep" style="margin-top:1.5rem;">
+  <p class="quiz-q">🧠 ¿Dónde es el PEOR lugar para poner el router en una casa?</p>
+  <div class="quiz-opts">
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf3')">En una estantería alta en el centro de la casa</button>
+    <button class="quiz-opt" onclick="qCheck(this,'correct','qf3')">En el piso, detrás del televisor en un rincón</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf3')">En un pasillo central a media altura</button>
+  </div>
+  <div class="quiz-fb" id="qf3"></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S8 · CONFIGURAR EL ROUTER -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-label">
+    <span class="num">08</span>
+    <div>
+      <h2>CONFIGURAR EL ROUTER</h2>
+      <div class="sub">Cómo entrar al panel, DHCP y qué conectar a qué</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">¿QUÉ ES EL PANEL DE ADMINISTRACIÓN?</div>
+    <p class="def-text">Todo router tiene una <strong>interfaz web interna</strong> a la que podés acceder desde cualquier dispositivo conectado a la red. Desde ahí configurás el nombre del WiFi, la contraseña, el DHCP, los puertos, el modo de operación y mucho más. No necesitás instalar nada: se usa desde el navegador.</p>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">PASO A PASO: CÓMO INGRESAR AL ROUTER</h3>
+
+  <div class="tips-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div class="tip-card">
+      <div class="tc-num">1</div>
+      <div class="tc-content">
+        <div class="tc-tag">CONEXIÓN</div>
+        <h4>Conectate al router</h4>
+        <p>Podés conectarte <strong>por WiFi</strong> (a la red del router) o mejor aún <strong>por cable Ethernet</strong> desde la PC. Con cable es más estable para configurar.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">2</div>
+      <div class="tc-content">
+        <div class="tc-tag">DIRECCIÓN IP</div>
+        <h4>Abrí el navegador e ingresá la IP</h4>
+        <p>La IP del router (llamada <em>gateway</em>) suele ser una de estas. Escribila en la barra del navegador como si fuera una página web:</p>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;">
+          <span style="font-family:var(--mono);font-size:0.75rem;background:var(--bg);border:1px solid var(--border2);padding:3px 8px;border-radius:4px;color:var(--amber2);">192.168.1.1</span>
+          <span style="font-family:var(--mono);font-size:0.75rem;background:var(--bg);border:1px solid var(--border2);padding:3px 8px;border-radius:4px;color:var(--amber2);">192.168.0.1</span>
+          <span style="font-family:var(--mono);font-size:0.75rem;background:var(--bg);border:1px solid var(--border2);padding:3px 8px;border-radius:4px;color:var(--amber2);">10.0.0.1</span>
+        </div>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">3</div>
+      <div class="tc-content">
+        <div class="tc-tag">USUARIO Y CONTRASEÑA</div>
+        <h4>Ingresá las credenciales</h4>
+        <p>El router pide usuario y contraseña. Por defecto suele ser <span style="font-family:var(--mono);color:var(--amber2);">admin / admin</span> o <span style="font-family:var(--mono);color:var(--amber2);">admin / (vacío)</span>. También lo encontrás en la etiqueta del router o en el manual.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">4</div>
+      <div class="tc-content">
+        <div class="tc-tag">DÓNDE ENCONTRAR LA IP</div>
+        <h4>Si no sabés la IP del router</h4>
+        <p>En Windows: <span style="font-family:var(--mono);font-size:0.75rem;color:var(--amber2);">cmd → ipconfig</span> → buscá "Puerta de enlace predeterminada".<br>En Android: WiFi → info de la red → Gateway.<br>En iPhone: WiFi → (i) → Router.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <span class="t-icon">⚠️</span>
+    <p><strong>Importante:</strong> Cambiá el usuario y contraseña del panel apenas lo configurés. Dejar el "admin/admin" de fábrica es una brecha de seguridad enorme. Cualquiera conectado a tu red puede cambiar toda la configuración.</p>
+  </div>
+
+  <!-- QUÉ CONECTAR A QUÉ -->
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">QUÉ CONECTAR A QUÉ — PUERTOS Y CABLES</h3>
+  <table class="tbl">
+    <thead><tr><th>Puerto / Entrada</th><th>Qué conectar</th><th>Color típico</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td>WAN / Internet</td><td>Cable del proveedor (ISP) o del módem</td><td>Azul o amarillo</td><td>Trae Internet al router desde afuera</td></tr>
+      <tr><td>LAN 1–4</td><td>PC, Smart TV, consola, decodificador</td><td>Amarillo o gris</td><td>Conexión por cable a dispositivos de la red local</td></tr>
+      <tr><td>USB (si tiene)</td><td>Disco externo o impresora</td><td>Negro</td><td>Compartir archivos o impresora en la red</td></tr>
+      <tr><td>Alimentación</td><td>Adaptador de corriente del router</td><td>Negro</td><td>Energía eléctrica — no intercambiable entre modelos</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <span class="t-icon">🔌</span>
+    <p><strong>Regla de oro:</strong> El cable del proveedor (el que viene de afuera de la casa, de la caja en la pared) siempre va al puerto <strong>WAN</strong>. Los demás dispositivos van a los puertos <strong>LAN</strong>. Si los invertís, no hay Internet.</p>
+  </div>
+
+  <!-- DHCP -->
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">¿QUÉ ES EL DHCP?</h3>
+
+  <div class="def-block">
+    <div class="def-label">DEFINICIÓN</div>
+    <p class="def-text"><strong>DHCP</strong> (Dynamic Host Configuration Protocol) es el servicio del router que <strong>asigna automáticamente una dirección IP a cada dispositivo</strong> que se conecta a la red. Sin DHCP tendrías que configurar manualmente la IP de cada celular, PC y tablet. Es lo que permite que cuando conectás un dispositivo nuevo al WiFi, funcione solo sin configurar nada.</p>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <p style="font-size:0.82rem;font-weight:700;color:var(--amber2);margin-bottom:6px;">🔄 IP Dinámica (DHCP activado)</p>
+      <p style="font-size:0.8rem;color:var(--text2);line-height:1.55;">El router asigna una IP diferente cada vez que un dispositivo se conecta. Es la configuración normal para una casa. El router gestiona todo automáticamente.</p>
+      <div class="tip-box" style="margin-top:8px;">
+        <span class="t-icon" style="font-size:1rem;">✅</span>
+        <p style="font-size:0.75rem;">Para uso hogareño en el campo: dejalo activado siempre. Es lo más simple y seguro.</p>
+      </div>
+    </div>
+    <div class="card">
+      <p style="font-size:0.82rem;font-weight:700;color:var(--blue);margin-bottom:6px;">📌 IP Fija (DHCP desactivado o reserva)</p>
+      <p style="font-size:0.8rem;color:var(--text2);line-height:1.55;">Podés "reservar" una IP fija para un dispositivo específico (por ejemplo, la impresora o la cámara de seguridad) para que siempre tenga la misma dirección.</p>
+      <div class="tip-box" style="margin-top:8px; border-color:rgba(56,189,248,0.2); background:rgba(56,189,248,0.05);">
+        <span class="t-icon" style="font-size:1rem;">🖨️</span>
+        <p style="font-size:0.75rem; color:#7dd3fc;">Útil para: impresoras, cámaras de seguridad IP, NAS (servidor de archivos casero).</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">OPCIONES CLAVE EN EL PANEL DEL ROUTER</h3>
+  <table class="tbl">
+    <thead><tr><th>Opción</th><th>Qué hace</th><th>Recomendación</th></tr></thead>
+    <tbody>
+      <tr><td>SSID</td><td>Nombre de tu red WiFi que ven los demás</td><td>Poné algo neutro, sin tu nombre ni dirección</td></tr>
+      <tr><td>Contraseña WiFi</td><td>Clave para conectarse a tu red</td><td>Mínimo 12 caracteres, mezclar letras y números</td></tr>
+      <tr><td>Cifrado</td><td>Protocolo de seguridad</td><td>Siempre WPA2-AES o WPA3</td></tr>
+      <tr><td>Canal WiFi</td><td>Frecuencia exacta dentro de 2.4 o 5 GHz</td><td>Auto, o probá canal 1, 6 u 11 en 2.4 GHz</td></tr>
+      <tr><td>DHCP</td><td>Asignación automática de IPs</td><td>Activado siempre para uso doméstico</td></tr>
+      <tr><td>Firewall</td><td>Barrera contra conexiones externas no deseadas</td><td>Siempre activado</td></tr>
+      <tr><td>DNS</td><td>Servidor que traduce nombres de web a IPs</td><td>Probá Google (8.8.8.8) o Cloudflare (1.1.1.1) si la web va lenta</td></tr>
+      <tr><td>Actualizar firmware</td><td>Actualiza el software interno del router</td><td>Hacerlo cada 6–12 meses</td></tr>
+    </tbody>
+  </table>
+
+  <!-- CONFIGURACIÓN POR TIPO DE SERVICIO -->
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.5rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">⚙️ CONFIGURACIÓN SEGÚN TU TIPO DE SERVICIO</h3>
+  <p style="font-size:0.85rem;color:var(--text2);margin-bottom:1rem;line-height:1.6;">Cada tipo de conexión se instala y configura diferente. Acá te explicamos qué hacer en cada caso cuando el técnico no está.</p>
+
+  <!-- STARLINK -->
+  <div class="prov-card" style="margin-bottom:10px;">
+    <div class="prov-header" style="cursor:pointer;" onclick="toggleConfig('cfg-starlink',this)">
+      <div class="prov-icon" style="background:rgba(234,88,12,0.12);">🛰️</div>
+      <div style="flex:1;">
+        <div class="prov-name">Starlink (Satelital)</div>
+        <div class="prov-type">EL MÁS COMÚN EN ZONAS RURALES ARGENTINAS</div>
+      </div>
+      <span style="color:var(--amber);font-size:1rem;flex-shrink:0;">▼</span>
+    </div>
+    <div id="cfg-starlink" style="display:block;">
+      <div class="prov-body" style="display:block;padding:1rem 1.25rem;">
+        <div class="tip-box" style="margin-bottom:0.75rem;">
+          <span class="t-icon">📦</span>
+          <p><strong>Lo que viene en la caja:</strong> Antena dish (plato redondo), cable de 23 metros, router Starlink propio, y pie o soporte. Todo el kit ya está pensado para funcionar junto. No necesitás un router adicional salvo que quieras más cobertura.</p>
+        </div>
+        <div class="tips-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:0;">
+          <div class="tip-card">
+            <div class="tc-num">1</div>
+            <div class="tc-content">
+              <div class="tc-tag">UBICACIÓN</div>
+              <h4>Elegí el lugar de la antena</h4>
+              <p>La antena necesita <strong>cielo abierto</strong> sin árboles, techos ni postes en el camino. Antes de instalarla, usá la app Starlink → "Verificar obstrucciones" apuntando el celular al cielo. Necesitás al menos 100° de cielo despejado.</p>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tc-num">2</div>
+            <div class="tc-content">
+              <div class="tc-tag">APP</div>
+              <h4>Descargá la app Starlink</h4>
+              <p>Disponible para Android e iPhone. La app guía todo el proceso, muestra el estado de la señal, la velocidad actual, las obstrucciones y te avisa si hay problemas.</p>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tc-num">3</div>
+            <div class="tc-content">
+              <div class="tc-tag">CABLE</div>
+              <h4>Conectá el cable de la antena al router</h4>
+              <p>El cable tiene un conector propio (no es RJ45 estándar). Va directo al router Starlink. El router se enchufá a la corriente (220V) y listo. <strong>No necesita modem adicional</strong>.</p>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tc-num">4</div>
+            <div class="tc-content">
+              <div class="tc-tag">PRIMERA VEZ</div>
+              <h4>Conectate al WiFi Starlink y activá</h4>
+              <p>El router emite un WiFi con nombre <span style="font-family:var(--mono);font-size:0.75rem;color:var(--amber2);">STINKY</span> (provisional). Conectate, abrí la app, creá tu cuenta o iniciá sesión y seguí el asistente de activación.</p>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tc-num">5</div>
+            <div class="tc-content">
+              <div class="tc-tag">PERSONALIZAR</div>
+              <h4>Cambiá nombre y contraseña del WiFi</h4>
+              <p>En la app: Configuración → Red → Nombre de red (SSID) y Contraseña. Ponele un nombre neutro y una contraseña fuerte. También podés configurar la red de invitados desde la app.</p>
+            </div>
+          </div>
+          <div class="tip-card">
+            <div class="tc-num">6</div>
+            <div class="tc-content">
+              <div class="tc-tag">ROUTER EXTRA</div>
+              <h4>¿Querés más cobertura en casa?</h4>
+              <p>El router Starlink cubre bien una casa mediana. Si querés más alcance, podés conectar un router adicional al puerto LAN del router Starlink (modo AP). Usá un TP-Link Archer en modo Punto de Acceso (AP Mode).</p>
+            </div>
+          </div>
+        </div>
+        <div class="warn-box" style="margin-top:0.75rem;">
+          <span class="t-icon">⚠️</span>
+          <p><strong>El dish se mueve solo:</strong> La antena Starlink se autoorienta buscando los satélites. No la toques ni la rotes manualmente una vez instalada. Necesita entre 15 y 30 minutos la primera vez para alinearse.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIBRA ÓPTICA -->
+  <div class="prov-card" style="margin-bottom:10px;">
+    <div class="prov-header" style="cursor:pointer;" onclick="toggleConfig('cfg-fibra',this)">
+      <div class="prov-icon" style="background:rgba(56,189,248,0.12);">💎</div>
+      <div style="flex:1;">
+        <div class="prov-name">Fibra Óptica (FTTH)</div>
+        <div class="prov-type">FIBERTEL · TELECENTRO · COOPERATIVAS · PERSONAL FLOW</div>
+      </div>
+      <span style="color:var(--amber);font-size:1rem;flex-shrink:0;">▼</span>
+    </div>
+    <div id="cfg-fibra" style="display:none;">
+      <div class="prov-body" style="display:block;padding:1rem 1.25rem;">
+        <div class="tip-box" style="margin-bottom:0.75rem;">
+          <span class="t-icon">🔧</span>
+          <p><strong>La instalación la hace el técnico del proveedor.</strong> Él coloca la ONT (el modem de fibra óptica) y conecta el cable de vidrio que viene de la calle. Lo que vos podés hacer después es configurar el router que te dieron o el tuyo propio.</p>
+        </div>
+        <table class="tbl" style="margin:0;">
+          <thead><tr><th>Paso</th><th>Qué hacer</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Conexión</td><td>El cable de fibra entra a la ONT (caja blanca del proveedor). De la ONT sale un cable Ethernet que va al puerto <strong>WAN</strong> de tu router.</td></tr>
+            <tr><td>2 · Encender</td><td>Enchufá la ONT primero, esperá 2 minutos a que se estabilice (LEDs en verde), luego enchufá el router.</td></tr>
+            <tr><td>3 · Acceder al panel</td><td>Ingresá a <span style="font-family:var(--mono);color:var(--amber2);">192.168.1.1</span> en el navegador. Usuario/contraseña en la etiqueta del router.</td></tr>
+            <tr><td>4 · Configurar PPPoE</td><td>Algunos proveedores (Fibertel, Telecentro) requieren PPPoE: en el panel del router → WAN → PPPoE → ingresá usuario y contraseña que te dio el ISP.</td></tr>
+            <tr><td>5 · WiFi</td><td>Cambiá nombre de red y contraseña WiFi. Activá WPA2-AES. Guardá y reiniciá el router.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADSL -->
+  <div class="prov-card" style="margin-bottom:10px;">
+    <div class="prov-header" style="cursor:pointer;" onclick="toggleConfig('cfg-adsl',this)">
+      <div class="prov-icon" style="background:rgba(245,158,11,0.1);">📞</div>
+      <div style="flex:1;">
+        <div class="prov-name">ADSL (línea telefónica)</div>
+        <div class="prov-type">PERSONAL / MOVISTAR — EN PUEBLOS Y ZONAS CON TELÉFONO FIJO</div>
+      </div>
+      <span style="color:var(--amber);font-size:1rem;flex-shrink:0;">▼</span>
+    </div>
+    <div id="cfg-adsl" style="display:none;">
+      <div class="prov-body" style="display:block;padding:1rem 1.25rem;">
+        <table class="tbl" style="margin:0;">
+          <thead><tr><th>Paso</th><th>Qué hacer</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Splitter</td><td>El cable telefónico de la pared entra primero a un <strong>splitter</strong> (pequeño divisor). Una salida va al teléfono, la otra va al puerto DSL del módem.</td></tr>
+            <tr><td>2 · Modem ADSL</td><td>Del módem ADSL sale un cable Ethernet que va al puerto <strong>WAN</strong> de tu router (o el propio módem tiene WiFi integrado).</td></tr>
+            <tr><td>3 · PPPoE</td><td>Ingresá al panel del módem (<span style="font-family:var(--mono);color:var(--amber2);">192.168.1.1</span>). Configurá la conexión WAN en modo PPPoE con usuario y contraseña del proveedor (formato típico: <span style="font-family:var(--mono);color:var(--amber2);">tu_dni@arnet.com.ar</span>).</td></tr>
+            <tr><td>4 · WiFi</td><td>Configurá nombre y contraseña WiFi en la sección Wireless del panel. Guardá y reiniciá.</td></tr>
+            <tr><td>5 · Velocidad baja</td><td>En ADSL la velocidad cae cuanto más lejos estés de la central. Si vivís a más de 3 km de la central telefónica del pueblo, es normal que la velocidad sea baja.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4G ROUTER -->
+  <div class="prov-card" style="margin-bottom:10px;">
+    <div class="prov-header" style="cursor:pointer;" onclick="toggleConfig('cfg-4g',this)">
+      <div class="prov-icon" style="background:rgba(34,197,94,0.1);">📶</div>
+      <div style="flex:1;">
+        <div class="prov-name">Router 4G con chip SIM</div>
+        <div class="prov-type">CLARO · PERSONAL · MOVISTAR — CAMPO Y ZONAS SIN CABLE</div>
+      </div>
+      <span style="color:var(--amber);font-size:1rem;flex-shrink:0;">▼</span>
+    </div>
+    <div id="cfg-4g" style="display:none;">
+      <div class="prov-body" style="display:block;padding:1rem 1.25rem;">
+        <div class="tip-box" style="margin-bottom:0.75rem;">
+          <span class="t-icon">📱</span>
+          <p><strong>¿No tenés router 4G?</strong> Podés crear un punto de acceso ("hotspot") desde el celular: Configuración → Ajustes de red → Punto de acceso personal. Pero el celular se calienta y la batería dura poco. El router 4G es la solución permanente.</p>
+        </div>
+        <table class="tbl" style="margin:0;">
+          <thead><tr><th>Paso</th><th>Qué hacer</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Chip SIM</td><td>Insertá el chip SIM de tu operadora en la ranura del router (generalmente en la base o en un panel lateral). Usá un chip de datos, no de voz. Los planes de datos para router se contratan aparte.</td></tr>
+            <tr><td>2 · Encender</td><td>Enchufá el router a la corriente. El LED de señal celular debe encenderse (puede tardar 1–2 min). Si es rojo, la señal 4G es débil o no hay cobertura.</td></tr>
+            <tr><td>3 · Acceder al panel</td><td>Ingresá a <span style="font-family:var(--mono);color:var(--amber2);">192.168.8.1</span> (Huawei) o <span style="font-family:var(--mono);color:var(--amber2);">192.168.1.1</span> (TP-Link). Usuario/contraseña en la etiqueta.</td></tr>
+            <tr><td>4 · APN</td><td>Si no conecta solo, configurá el APN: Huawei → Configuración → Gestión del perfil → APN. Para Claro: <span style="font-family:var(--mono);color:var(--amber2);">internet.ctimovil.com.ar</span> · Para Personal: <span style="font-family:var(--mono);color:var(--amber2);">datos.personal.com</span> · Para Movistar: <span style="font-family:var(--mono);color:var(--amber2);">internet.movistar.com.ar</span></td></tr>
+            <tr><td>5 · Antena externa</td><td>Si la señal es débil, conectá una antena LTE externa (panel o yagi) a los conectores SMA del router. Apuntala hacia la antena celular más cercana. Podés usar apps como "OpenSignal" para ubicarla.</td></tr>
+            <tr><td>6 · WiFi</td><td>Cambiá SSID y contraseña en el panel → WiFi. Guardá y conectate.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <hr class="sep">
+  <div class="quiz-opts">
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf4')">Encripta la señal WiFi</button>
+    <button class="quiz-opt" onclick="qCheck(this,'correct','qf4')">Asigna automáticamente una IP a cada dispositivo que se conecta</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf4')">Aumenta la velocidad de bajada</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf4')">Conecta el router al proveedor de Internet</button>
+  </div>
+  <div class="quiz-fb" id="qf4"></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S9 · EQUIPOS Y MARCAS -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s9">
+  <div class="section-label">
+    <span class="num">09</span>
+    <div>
+      <h2>EQUIPOS Y MARCAS</h2>
+      <div class="sub">Qué conviene según el tipo de casa y presupuesto</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">ANTES DE COMPRAR</div>
+    <p class="def-text">No existe el "mejor router" para todos. Depende del <strong>tamaño de la casa</strong>, <strong>cantidad de dispositivos</strong>, <strong>tipo de conexión</strong> del proveedor y el <strong>presupuesto</strong>. Un router de $15.000 puede ser perfecto para un departamento y horrible para una casa rural grande.</p>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">SEGÚN EL TIPO DE CASA</h3>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:0.75rem 0;">
+
+    <div class="prov-card">
+      <div class="prov-header">
+        <div class="prov-icon" style="background:rgba(34,197,94,0.12);">🏠</div>
+        <div>
+          <div class="prov-name">Casa chica / Departamento</div>
+          <div class="prov-type">1–3 AMBIENTES · HASTA 5 DISPOSITIVOS</div>
+        </div>
+      </div>
+      <div class="prov-body">
+        <div class="prov-stat"><div class="ps-val">Router básico</div><div class="ps-label">Single band 2.4 GHz</div></div>
+        <div class="prov-stat"><div class="ps-val">$15k–25k</div><div class="ps-label">Precio referencia 2024</div></div>
+      </div>
+      <div class="prov-zones">
+        <p style="margin-bottom:6px;font-size:0.78rem;color:var(--text2);">Un router estándar de entrada alcanza para cubrir todo. No hace falta invertir mucho.</p>
+        <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">MODELOS RECOMENDADOS:</strong></p>
+        <span class="zona-tag">TP-Link TL-WR940N</span>
+        <span class="zona-tag">D-Link DIR-615</span>
+        <span class="zona-tag">Router del proveedor (gratis)</span>
+      </div>
+    </div>
+
+    <div class="prov-card">
+      <div class="prov-header">
+        <div class="prov-icon" style="background:rgba(245,158,11,0.12);">🏡</div>
+        <div>
+          <div class="prov-name">Casa mediana</div>
+          <div class="prov-type">3–5 AMBIENTES · HASTA 15 DISPOSITIVOS</div>
+        </div>
+      </div>
+      <div class="prov-body">
+        <div class="prov-stat"><div class="ps-val">Dual Band</div><div class="ps-label">2.4 + 5 GHz</div></div>
+        <div class="prov-stat"><div class="ps-val">$30k–60k</div><div class="ps-label">Precio referencia 2024</div></div>
+      </div>
+      <div class="prov-zones">
+        <p style="margin-bottom:6px;font-size:0.78rem;color:var(--text2);">Un router dual band cubre bien y permite separar dispositivos lentos (2.4) de los rápidos (5 GHz).</p>
+        <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">MODELOS RECOMENDADOS:</strong></p>
+        <span class="zona-tag">TP-Link Archer C6</span>
+        <span class="zona-tag">TP-Link Archer AX23</span>
+        <span class="zona-tag">ASUS RT-AC58U</span>
+        <span class="zona-tag">Xiaomi Router 4A</span>
+      </div>
+    </div>
+
+    <div class="prov-card">
+      <div class="prov-header">
+        <div class="prov-icon" style="background:rgba(167,139,250,0.12);">🏚️</div>
+        <div>
+          <div class="prov-name">Casa grande / Rural</div>
+          <div class="prov-type">+6 AMBIENTES O ESPACIOS ABIERTOS</div>
+        </div>
+      </div>
+      <div class="prov-body">
+        <div class="prov-stat"><div class="ps-val">Mesh / Repetidor</div><div class="ps-label">Sistema multi-nodo</div></div>
+        <div class="prov-stat"><div class="ps-val">$60k–180k</div><div class="ps-label">Sistema completo</div></div>
+      </div>
+      <div class="prov-zones">
+        <p style="margin-bottom:6px;font-size:0.78rem;color:var(--text2);">Un solo router no alcanza. Necesitás un sistema mesh (varios nodos que trabajan juntos) o repetidores bien ubicados.</p>
+        <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">MODELOS RECOMENDADOS:</strong></p>
+        <span class="zona-tag">TP-Link Deco M4 (kit x2)</span>
+        <span class="zona-tag">TP-Link Deco XE75</span>
+        <span class="zona-tag">ASUS ZenWiFi AX</span>
+        <span class="zona-tag">Xiaomi Mesh System AX3000</span>
+      </div>
+    </div>
+
+    <div class="prov-card">
+      <div class="prov-header">
+        <div class="prov-icon" style="background:rgba(234,88,12,0.12);">🐄</div>
+        <div>
+          <div class="prov-name">Campo / Estancia con 4G</div>
+          <div class="prov-type">ZONAS SIN FIBRA NI ADSL — CELULAR O SATELITAL</div>
+        </div>
+      </div>
+      <div class="prov-body">
+        <div class="prov-stat"><div class="ps-val">Router 4G LTE</div><div class="ps-label">Con ranura SIM</div></div>
+        <div class="prov-stat"><div class="ps-val">$40k–90k</div><div class="ps-label">+ chip de datos</div></div>
+      </div>
+      <div class="prov-zones">
+        <p style="margin-bottom:6px;font-size:0.78rem;color:var(--text2);">Router que acepta chip de celular directamente. Con antena externa LTE apuntando a la antena más cercana, mejorás mucho la señal.</p>
+        <p style="margin-bottom:5px;"><strong style="font-size:0.75rem;color:var(--amber);">MODELOS RECOMENDADOS:</strong></p>
+        <span class="zona-tag">TP-Link MR6400</span>
+        <span class="zona-tag">Huawei B525 (4G)</span>
+        <span class="zona-tag">Huawei B715 (4G+)</span>
+        <span class="zona-tag">Mikrotik LtAP (exterior)</span>
+        <span class="zona-tag">Ubiquiti LiteBeam</span>
+      </div>
+    </div>
+
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">MARCAS MÁS CONFIABLES — RESUMEN</h3>
+  <table class="tbl">
+    <thead><tr><th>Marca</th><th>Origen</th><th>Perfil</th><th>Precio</th><th>Conseguís en AR</th></tr></thead>
+    <tbody>
+      <tr><td>TP-Link</td><td>🇨🇳 China</td><td>Relación precio/calidad imbatible. La más vendida en Argentina. Fácil de configurar.</td><td>$–$$$</td><td>✅ MercadoLibre, Frávega, Garbarino</td></tr>
+      <tr><td>ASUS</td><td>🇹🇼 Taiwán</td><td>Excelente firmware, muy configurables. Para usuarios avanzados. Buena cobertura.</td><td>$$$</td><td>✅ MercadoLibre, distribuidores IT</td></tr>
+      <tr><td>Xiaomi</td><td>🇨🇳 China</td><td>Diseño moderno, buena velocidad. Firmware en español. Precio competitivo.</td><td>$–$$</td><td>✅ MercadoLibre</td></tr>
+      <tr><td>Huawei</td><td>🇨🇳 China</td><td>Líderes en routers 4G/LTE. Muy usados en el campo. Buena cobertura y estabilidad.</td><td>$$–$$$</td><td>✅ Distribuidores de telecomunicaciones</td></tr>
+      <tr><td>Mikrotik</td><td>🇱🇻 Letonia</td><td>Para redes profesionales. Muy potentes, configuración compleja. Usados por ISPs rurales.</td><td>$$–$$$$</td><td>✅ Distribuidores IT y MercadoLibre</td></tr>
+      <tr><td>Ubiquiti</td><td>🇺🇸 EE.UU.</td><td>Nivel profesional. Excelente para exteriores y largas distancias en el campo.</td><td>$$$–$$$$</td><td>✅ Distribuidores especializados</td></tr>
+      <tr><td>D-Link</td><td>🇹🇼 Taiwán</td><td>Clásico del mercado argentino. Funcional y económico.</td><td>$–$$</td><td>✅ Frávega, Garbarino, MercadoLibre</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <span class="t-icon">💡</span>
+    <p><strong>Consejo para zonas rurales:</strong> Antes de comprar un router 4G, verificá qué operadora tiene mejor cobertura en tu zona exacta. Podés usar los mapas de cobertura de <span style="font-family:var(--mono);color:var(--green);">Claro</span>, <span style="font-family:var(--mono);color:var(--green);">Personal</span> y <span style="font-family:var(--mono);color:var(--green);">Movistar</span> en sus sitios web. Comprá el router compatible con esa red.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- S10 · MODO REPETIDOR -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section class="section" id="s10">
+  <div class="section-label">
+    <span class="num">10</span>
+    <div>
+      <h2>MODO REPETIDOR</h2>
+      <div class="sub">Cómo configurar un router o extensor para ampliar la señal</div>
+    </div>
+  </div>
+
+  <div class="def-block">
+    <div class="def-label">¿QUÉ ES EL MODO REPETIDOR?</div>
+    <p class="def-text">El <strong>modo repetidor</strong> (o <em>range extender</em>) convierte un router o extensor en un "amplificador" de la señal WiFi existente. El dispositivo recibe la señal del router principal y la re-emite, extendiendo la cobertura a zonas donde antes no llegaba —sin necesidad de pasar cables nuevos por toda la casa.</p>
+  </div>
+
+  <div class="tip-box">
+    <span class="t-icon">🐄</span>
+    <p><strong>Ejemplo rural:</strong> El router está en la cocina de la casa principal y no llega señal al cuarto de los peones que está a 25 metros. Ponés un repetidor en el pasillo o en el porche (a mitad de camino), y la señal llega al cuarto.</p>
+  </div>
+
+  <!-- DIAGRAMA REPETIDOR -->
+  <div class="router-diagram" style="margin:0.75rem 0;">
+    <p style="font-family:var(--mono);font-size:0.68rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem;">ESQUEMA: ROUTER + REPETIDOR</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-size:2rem;">🌐</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--text3);margin-top:3px;">INTERNET</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:0.7rem;color:var(--amber);flex-shrink:0;">──▶</div>
+      <div style="text-align:center;background:var(--card);border:2px solid var(--amber);border-radius:var(--r-sm);padding:0.5rem 0.75rem;">
+        <div style="font-size:1.6rem;">📡</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--amber);margin-top:2px;">ROUTER<br>PRINCIPAL</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:0.7rem;color:var(--amber);flex-shrink:0;">···WiFi···▶</div>
+      <div style="text-align:center;background:var(--card);border:2px solid var(--blue);border-radius:var(--r-sm);padding:0.5rem 0.75rem;">
+        <div style="font-size:1.6rem;">🔁</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--blue);margin-top:2px;">REPETIDOR<br>(a mitad de camino)</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:0.7rem;color:var(--blue);flex-shrink:0;">···WiFi···▶</div>
+      <div style="text-align:center;">
+        <div style="font-size:1.6rem;">📱💻📺</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--text3);margin-top:3px;">DISPOSITIVOS<br>LEJOS</div>
+      </div>
+    </div>
+    <p style="font-family:var(--mono);font-size:0.65rem;color:var(--red);margin-top:0.75rem;">⚠️ El repetidor NUNCA va en el punto sin señal — va donde aún llega señal del router principal</p>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">OPCIÓN A — REPETIDOR DEDICADO (MÁS FÁCIL)</h3>
+  <p style="font-size:0.85rem;color:var(--text2);margin-bottom:0.75rem;line-height:1.6;">Un extensor WiFi es un dispositivo que se conecta directo al enchufe y ya viene listo para funcionar como repetidor. Es la opción más sencilla.</p>
+
+  <div class="tips-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div class="tip-card">
+      <div class="tc-num">1</div>
+      <div class="tc-content">
+        <div class="tc-tag">CONECTAR</div>
+        <h4>Enchufá el repetidor cerca del router</h4>
+        <p>La primera configuración hacela cerca del router principal (en la misma habitación) para que sea más fácil.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">2</div>
+      <div class="tc-content">
+        <div class="tc-tag">ACCESO</div>
+        <h4>Conectate a la red del repetidor o usá el botón WPS</h4>
+        <p>Muchos repetidores crean una red temporal como <span style="font-family:var(--mono);font-size:0.75rem;color:var(--amber2);">TP-Link_Extender_XXXX</span>. Conectate ahí y entrá a <span style="font-family:var(--mono);font-size:0.75rem;color:var(--amber2);">tplinkrepeater.net</span> o la IP indicada en el manual. Otra opción es el botón <strong>WPS</strong>: apretá WPS en el router y luego WPS en el repetidor — se configuran solos en 2 minutos.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">3</div>
+      <div class="tc-content">
+        <div class="tc-tag">CONFIGURAR</div>
+        <h4>Seleccioná tu red WiFi e ingresá la contraseña</h4>
+        <p>En el panel del repetidor verás las redes disponibles. Seleccioná la tuya, ingresá la contraseña WiFi y guardá. El repetidor se reinicia y listo.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">4</div>
+      <div class="tc-content">
+        <div class="tc-tag">REUBICAR</div>
+        <h4>Movelo al lugar definitivo</h4>
+        <p>Una vez configurado, desenchufalo y ponelo a mitad de camino entre el router y la zona sin señal. El indicador LED te dirá si la señal del router llega bien (verde = bien, rojo = muy lejos).</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">OPCIÓN B — SEGUNDO ROUTER EN MODO REPETIDOR (MÁS POTENTE)</h3>
+  <p style="font-size:0.85rem;color:var(--text2);margin-bottom:0.75rem;line-height:1.6;">Si tenés un router viejo guardado, podés convertirlo en repetidor. Es más complejo pero el resultado es mejor que un extensor básico.</p>
+
+  <div class="tips-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+    <div class="tip-card">
+      <div class="tc-num">1</div>
+      <div class="tc-content">
+        <div class="tc-tag">ACCEDER</div>
+        <h4>Entrá al panel del segundo router</h4>
+        <p>Conectá la PC al segundo router por cable LAN. Abrí el navegador y accedé a su IP (192.168.1.1 o la que indica el manual). Ingresá con usuario y contraseña.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">2</div>
+      <div class="tc-content">
+        <div class="tc-tag">MODO</div>
+        <h4>Buscá "Modo de operación" o "Operation Mode"</h4>
+        <p>En el menú principal buscá opciones como <em>Modo Router</em>, <em>Modo AP</em> o <em>Modo Repetidor / Range Extender</em>. Seleccioná <strong>Modo Repetidor</strong> o <strong>Modo Cliente + AP</strong>.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">3</div>
+      <div class="tc-content">
+        <div class="tc-tag">CONECTAR</div>
+        <h4>Elegí la red del router principal</h4>
+        <p>El sistema va a escanear las redes disponibles. Seleccioná tu red WiFi principal e ingresá su contraseña. El repetidor se va a conectar a ella como si fuera un cliente más.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">4</div>
+      <div class="tc-content">
+        <div class="tc-tag">DHCP — CLAVE</div>
+        <h4>Desactivá el DHCP del segundo router</h4>
+        <p>Este paso es crucial. Si dejás el DHCP activado en ambos routers van a "pelear" asignando IPs y la red se rompe. En el segundo router: <em>Configuración LAN → DHCP → Desactivar</em>. El DHCP lo maneja solo el router principal.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">5</div>
+      <div class="tc-content">
+        <div class="tc-tag">IP FIJA</div>
+        <h4>Asignale una IP fija al segundo router</h4>
+        <p>Para que no haya conflictos, asignale una IP manual fuera del rango DHCP. Si tu router principal usa 192.168.1.1 y da IPs del .100 al .200, poné al repetidor la IP <span style="font-family:var(--mono);font-size:0.75rem;color:var(--amber2);">192.168.1.2</span> o similar.</p>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tc-num">6</div>
+      <div class="tc-content">
+        <div class="tc-tag">SSID</div>
+        <h4>Mismo nombre y contraseña que el router principal (opcional)</h4>
+        <p>Si usás el mismo nombre (SSID) y contraseña WiFi en el repetidor, los dispositivos se van a conectar automáticamente al que tenga mejor señal mientras te movés por la casa. Si usás uno diferente, tenés que cambiar manualmente.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <span class="t-icon">⚠️</span>
+    <p><strong>El error más común:</strong> poner el repetidor demasiado lejos del router principal. El repetidor repite lo que recibe: si recibe señal débil, emite señal débil. Poné el repetidor donde el medidor de señal del celular muestre al menos 2 de 4 barras del router principal.</p>
+  </div>
+
+  <h3 style="font-size:0.82rem;color:var(--text2);margin:1.25rem 0 0.5rem;font-family:var(--mono);letter-spacing:0.06em;">REPETIDOR vs SISTEMA MESH — DIFERENCIAS</h3>
+  <table class="tbl">
+    <thead><tr><th>Característica</th><th>Repetidor/Extensor</th><th>Sistema Mesh</th></tr></thead>
+    <tbody>
+      <tr><td>Precio</td><td>Bajo ($15k–30k)</td><td>Alto ($60k–180k kit)</td></tr>
+      <tr><td>Configuración</td><td>Algo técnica</td><td>Muy sencilla (app)</td></tr>
+      <tr><td>Red unificada</td><td>No siempre</td><td>Sí, siempre un solo WiFi</td></tr>
+      <tr><td>Velocidad real</td><td>Reduce a la mitad (en 2.4 GHz)</td><td>Alta, sin pérdida significativa</td></tr>
+      <tr><td>Roaming automático</td><td>No / difícil</td><td>Sí, el dispositivo cambia solo</td></tr>
+      <tr><td>Ideal para</td><td>Presupuesto limitado, una zona sin señal</td><td>Casas grandes, uso intensivo</td></tr>
+    </tbody>
+  </table>
+
+  <!-- QUIZ -->
+  <hr class="sep">
+  <p class="quiz-q">🧠 Al configurar un segundo router en modo repetidor, ¿qué servicio debés desactivar en él para evitar conflictos de red?</p>
+  <div class="quiz-opts">
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf5')">El firewall</button>
+    <button class="quiz-opt" onclick="qCheck(this,'correct','qf5')">El DHCP</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf5')">El WiFi en 5 GHz</button>
+    <button class="quiz-opt" onclick="qCheck(this,'wrong','qf5')">El WPS</button>
+  </div>
+  <div class="quiz-fb" id="qf5"></div>
+</section>
+
+<footer>
+<footer>
+  <p style="margin-bottom:4px;"><strong>WiFi y Conectividad en Argentina</strong> · Material complementario</p>
+  <p>Módulo 2 · Alfabetización en redes digitales · 4° NTICx · Prof. Daniel Villarruel</p>
+</footer>
+
+</div><!-- /wrap -->
+
+<script>
+// ── CANVAS SEÑAL ──────────────────────────────────────────────
+const cv = document.getElementById('signal-canvas');
+const cx = cv.getContext('2d');
+let W, H, rings = [];
+
+function resize() {
+  W = cv.width = window.innerWidth;
+  H = cv.height = window.innerHeight;
+}
+
+function initRings() {
+  rings = [];
+  const n = 5;
+  for (let i = 0; i < n; i++) {
+    rings.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0,
+      maxR: 80 + Math.random() * 120,
+      speed: 0.5 + Math.random() * 0.8,
+      opacity: 0
+    });
+  }
+}
+
+function animateRings() {
+  cx.clearRect(0, 0, W, H);
+  rings.forEach(ring => {
+    ring.r += ring.speed;
+    ring.opacity = 1 - ring.r / ring.maxR;
+    if (ring.r > ring.maxR) {
+      ring.r = 0;
+      ring.x = Math.random() * W;
+      ring.y = Math.random() * H;
+    }
+    cx.beginPath();
+    cx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
+    cx.strokeStyle = `rgba(245,158,11,${ring.opacity * 0.6})`;
+    cx.lineWidth = 1;
+    cx.stroke();
+  });
+  requestAnimationFrame(animateRings);
+}
+
+resize(); initRings(); animateRings();
+window.addEventListener('resize', () => { resize(); });
+
+// ── NAV ──────────────────────────────────────────────────────
+function scrollTo(id, btn) {
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Actualizar nav al hacer scroll
+const sections = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10'];
+const navBtns = document.querySelectorAll('.nav-btn');
+window.addEventListener('scroll', () => {
+  let current = 's1';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 100) current = id;
+  });
+  navBtns.forEach((btn, i) => {
+    btn.classList.toggle('active', sections[i] === current);
+  });
+});
+
+// ── CONVERSOR ────────────────────────────────────────────────
+function formatTime(seconds) {
+  if (seconds < 1) return `${Math.round(seconds * 1000)} ms`;
+  if (seconds < 60) return `${seconds.toFixed(1)} seg`;
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)} min`;
+  return `${(seconds / 3600).toFixed(1)} hs`;
+}
+
+function updateConverter() {
+  const mbps = parseInt(document.getElementById('speed-slider').value);
+  document.getElementById('speed-out').textContent = mbps + ' Mbps';
+
+  const bytesPerSec = (mbps * 1_000_000) / 8;
+
+  const foto   = 3 * 1024 * 1024;
+  const canc   = 5 * 1024 * 1024;
+  const app    = 100 * 1024 * 1024;
+  const peli   = 4 * 1024 * 1024 * 1024;
+
+  document.getElementById('real-speed').textContent = (bytesPerSec / (1024*1024)).toFixed(2) + ' MB/s';
+  document.getElementById('c-foto').textContent   = formatTime(foto / bytesPerSec);
+  document.getElementById('c-cancion').textContent = formatTime(canc / bytesPerSec);
+  document.getElementById('c-app').textContent    = formatTime(app / bytesPerSec);
+  document.getElementById('c-peli').textContent   = formatTime(peli / bytesPerSec);
+
+  const peliMin = (peli / bytesPerSec / 60).toFixed(1);
+  let context = '';
+  if (mbps < 5) context = `Con ${mbps} Mbps una película tarda <strong>${peliMin} minutos</strong>. Es suficiente solo para chat y navegación básica.`;
+  else if (mbps < 25) context = `Con ${mbps} Mbps podés ver YouTube en calidad media y hacer videollamadas. Una película tarda <strong>${peliMin} min</strong>.`;
+  else if (mbps < 100) context = `Con ${mbps} Mbps podés hacer casi todo cómodamente. Netflix en HD y varias personas a la vez. Película en <strong>${peliMin} min</strong>.`;
+  else context = `Con ${mbps} Mbps tenés una conexión excelente. Fibra óptica de nivel. Película en <strong>${peliMin} min</strong>. ¡Genial para el campo!`;
+
+  document.getElementById('conv-context').innerHTML = context;
+}
+updateConverter();
+
+// ── TOGGLE CONFIG SERVICIOS ──────────────────────────────────
+function toggleConfig(id, header) {
+  const body = document.getElementById(id);
+  const arrow = header.querySelector('span:last-child');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+// ── QUIZ ────────────────────────────────────────────────────
+const qmsgs = {
+  correct: ['✓ ¡Exacto! Bien respondido.', '✓ ¡Correcto! Lo tenés claro.', '✓ ¡Muy bien!'],
+  wrong:   ['✗ No es esa. Revisá la sección y volvé a intentarlo.', '✗ Casi, pero no. Repasá el contenido.']
+};
+
+function qCheck(btn, type, fbId) {
+  const opts = btn.parentElement.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+  btn.classList.add(type);
+  const fb = document.getElementById(fbId);
+  const pool = qmsgs[type];
+  fb.textContent = pool[Math.floor(Math.random() * pool.length)];
+  fb.className = 'quiz-fb show ' + (type === 'correct' ? 'ok' : 'fail');
+}
+</script>
+</body>
+</html>

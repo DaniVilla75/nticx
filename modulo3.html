@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NTICx - Módulo 3: Alfabetización en Manejo de la Información</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-light: #334155;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --accent3: #f472b6;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --success: #22c55e;
+    --error: #ef4444;
+    --warning: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .browser-frame {
+    max-width: 1200px;
+    margin: 20px auto;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    border: 1px solid var(--surface-light);
+  }
+  .browser-header {
+    background: #0b1120;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--surface-light);
+  }
+  .window-controls { display: flex; gap: 8px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; }
+  .dot.yellow { background: #febc2e; }
+  .dot.green { background: #28c840; }
+  .address-bar {
+    flex: 1;
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+    border: 1px solid #334155;
+  }
+  .address-bar .protocol { color: var(--accent); font-weight: 600; }
+  .address-bar .url { color: var(--text); }
+  .address-bar .lock { color: var(--success); }
+  .tabs { display: flex; gap: 4px; padding: 0 20px; background: #0b1120; }
+  .tab {
+    padding: 10px 20px;
+    background: var(--surface);
+    border-radius: 12px 12px 0 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    border: 1px solid var(--surface-light);
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab:hover { background: var(--surface-light); }
+  .tab.active { background: var(--surface); color: var(--accent); border-bottom: 2px solid var(--accent); }
+  .tab-icon { font-size: 16px; }
+  .browser-content { padding: 0; min-height: 600px; position: relative; }
+  .tab-content { display: none; padding: 30px; animation: fadeIn 0.4s ease; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  h1 { font-size: 2.5rem; margin-bottom: 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  h2 { font-size: 1.8rem; margin: 30px 0 15px; color: var(--accent2); }
+  h3 { font-size: 1.3rem; margin: 20px 0 10px; color: var(--accent3); }
+  p { line-height: 1.7; margin-bottom: 15px; color: var(--text-muted); }
+  .highlight { background: rgba(56, 189, 248, 0.1); padding: 2px 6px; border-radius: 4px; color: var(--accent); font-weight: 600; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 8px; margin-bottom: 8px; }
+  .badge-info { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+  .badge-success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+  .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 25px 0; }
+  .card {
+    background: linear-gradient(145deg, var(--surface), #252f47);
+    border: 1px solid var(--surface-light);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-color: var(--accent); }
+  .card:hover::before { opacity: 1; }
+  .card-icon { font-size: 40px; margin-bottom: 15px; }
+  .card h4 { font-size: 1.2rem; margin-bottom: 10px; color: var(--text); }
+  .card p { font-size: 0.95rem; }
+  .card-example {
+    background: rgba(129, 140, 248, 0.1);
+    border-left: 3px solid var(--accent2);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin-top: 12px;
+    font-size: 0.9rem;
+  }
+  .timeline { position: relative; padding-left: 30px; margin: 30px 0; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--accent3));
+  }
+  .timeline-item { position: relative; margin-bottom: 30px; padding-left: 20px; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px; top: 5px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 3px solid var(--accent);
+  }
+  .timeline-item h4 { color: var(--accent); font-size: 1.1rem; margin-bottom: 8px; }
+  .timeline-item .year { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+  .interactive-box {
+    background: var(--surface-light);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px dashed var(--accent);
+  }
+  .interactive-box h4 { color: var(--accent); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 5px;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+  .btn-primary:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3); }
+  .btn-secondary { background: var(--surface-light); color: var(--text); border: 1px solid var(--surface-light); }
+  .btn-secondary:hover { background: var(--accent); color: white; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-danger { background: var(--error); color: white; }
+  .quiz-container { background: var(--surface); border-radius: 16px; padding: 30px; margin: 30px 0; border: 2px solid var(--surface-light); }
+  .quiz-question { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+  .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+  .quiz-option {
+    background: var(--surface-light);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .quiz-option:hover { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+  .quiz-option.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
+  .quiz-option.correct { border-color: var(--success); background: rgba(34, 197, 94, 0.15); }
+  .quiz-option.wrong { border-color: var(--error); background: rgba(239, 68, 68, 0.15); }
+  .option-letter {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+    border: 2px solid var(--text-muted);
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .quiz-option.selected .option-letter { border-color: var(--accent); color: var(--accent); }
+  .quiz-option.correct .option-letter { border-color: var(--success); color: var(--success); background: rgba(34,197,94,0.2); }
+  .quiz-option.wrong .option-letter { border-color: var(--error); color: var(--error); background: rgba(239,68,68,0.2); }
+  .quiz-feedback { margin-top: 20px; padding: 16px; border-radius: 10px; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: rgba(34,197,94,0.1); border: 1px solid var(--success); color: var(--success); }
+  .quiz-feedback.wrong { background: rgba(239,68,68,0.1); border: 1px solid var(--error); color: var(--error); }
+  .quiz-progress { display: flex; gap: 8px; margin-bottom: 25px; }
+  .progress-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--surface-light); transition: all 0.3s; }
+  .progress-dot.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .progress-dot.correct { background: var(--success); }
+  .progress-dot.wrong { background: var(--error); }
+  .quiz-score { text-align: center; padding: 40px; }
+  .quiz-score .score-number { font-size: 4rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .quiz-score .score-text { font-size: 1.2rem; color: var(--text-muted); margin-top: 10px; }
+  .flip-card-container { perspective: 1000px; }
+  .flip-card {
+    background: transparent;
+    width: 100%; height: 200px;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+  .flip-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+  .flip-card-front, .flip-card-back {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    border: 1px solid var(--surface-light);
+  }
+  .flip-card-front { background: linear-gradient(145deg, var(--surface), #252f47); }
+  .flip-card-back { background: linear-gradient(145deg, #252f47, var(--surface)); transform: rotateY(180deg); }
+  .flip-icon { font-size: 48px; margin-bottom: 15px; }
+  .flip-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
+  .search-sim {
+    background: var(--surface-light);
+    border-radius: 16px;
+    padding: 25px;
+    margin: 20px 0;
+  }
+  .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+  .search-input {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 2px solid var(--surface-light);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-results { display: none; }
+  .search-results.show { display: block; }
+  .result-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--surface-light);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .result-item:hover { background: rgba(56, 189, 248, 0.05); }
+  .result-title { color: var(--accent); font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
+  .result-url { color: var(--success); font-size: 0.85rem; margin-bottom: 6px; }
+  .result-desc { color: var(--text-muted); font-size: 0.9rem; }
+  .result-tags { display: flex; gap: 6px; margin-top: 8px; }
+  .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; background: var(--surface); color: var(--text-muted); }
+  .boolean-demo { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: center; margin: 25px 0; }
+  .boolean-circle {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem;
+    text-align: center;
+    position: relative;
+    border: 3px solid;
+  }
+  .circle-a { border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,0.1); }
+  .circle-b { border-color: var(--accent3); color: var(--accent3); background: rgba(244,114,182,0.1); }
+  .circle-and { border-color: var(--success); color: var(--success); background: rgba(34,197,94,0.1); }
+  .circle-or { border-color: var(--warning); color: var(--warning); background: rgba(245,158,11,0.1); }
+  .circle-not { border-color: var(--error); color: var(--error); background: rgba(239,68,68,0.1); }
+  .operator-symbol { font-size: 2rem; font-weight: 800; color: var(--text); }
+  @media (max-width: 768px) {
+    .browser-frame { margin: 10px; border-radius: 12px; }
+    .tab-content { padding: 20px; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.4rem; }
+    .card-grid { grid-template-columns: 1fr; }
+    .address-bar { font-size: 12px; }
+    .tabs { overflow-x: auto; padding: 0 10px; }
+    .tab { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+  }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .float { animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .code-block {
+    background: #0b1120;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    border: 1px solid var(--surface-light);
+    margin: 15px 0;
+  }
+  .code-tag { color: var(--accent3); }
+  .code-text { color: var(--text-muted); }
+  .arg-badge {
+    background: linear-gradient(135deg, #75AADB, #FFFFFF, #75AADB);
+    color: #0f172a;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+  .module-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    z-index: 1000;
+    transition: width 0.3s;
+  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface-light); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="module-progress" id="moduleProgress" style="width: 0%"></div>
+
+<div class="browser-frame">
+  <div class="browser-header">
+    <div class="window-controls">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+    </div>
+    <div class="address-bar">
+      <span class="lock">🔒</span>
+      <span class="protocol">https://</span>
+      <span class="url">nticx.bue.edu.ar/modulo3/alfabetizacion-informacion</span>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabContainer">
+    <div class="tab active" onclick="switchTab(0)"><span class="tab-icon">🏠</span> Inicio</div>
+    <div class="tab" onclick="switchTab(1)"><span class="tab-icon">🌐</span> Web & Hipertexto</div>
+    <div class="tab" onclick="switchTab(2)"><span class="tab-icon">🔍</span> Buscadores</div>
+    <div class="tab" onclick="switchTab(3)"><span class="tab-icon">🤖</span> Web 1.0 a 4.0</div>
+    <div class="tab" onclick="switchTab(4)"><span class="tab-icon">📚</span> Cibercultura</div>
+    <div class="tab" onclick="switchTab(5)"><span class="tab-icon">✅</span> Autoevaluación</div>
+    <div class="tab" onclick="switchTab(6)"><span class="tab-icon">📡</span> WIFI</div>
+  </div>
+
+  <div class="browser-content">
+
+    <!-- TAB 0: INICIO -->
+    <div class="tab-content active" id="tab-0">
+      <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 80px; margin-bottom: 20px;" class="float">🧭</div>
+        <h1>Alfabetización en Manejo de la Información</h1>
+        <p style="font-size: 1.2rem; max-width: 700px; margin: 0 auto 30px;">
+          Bienvenidos al <span class="highlight">Módulo 3</span> de NTICx.<br>
+          Navegá por las pestañas como si fuera un browser real y descubrí cómo funciona la información en la web.
+        </p>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 30px 0;">
+          <span class="badge badge-info">📡 Digitalización</span>
+          <span class="badge badge-success">🔗 Hipervínculos</span>
+          <span class="badge badge-warning">🔍 Buscadores</span>
+          <span class="badge badge-info">🤖 IA</span>
+          <span class="badge badge-success">🌎 Web 4.0</span>
+        </div>
+        <div class="arg-badge" style="display: inline-block; margin-top: 20px;">Prof. Daniel Villarruel - 2026</div>
+        <p style="margin-top: 30px; font-size: 0.9rem;"><span class="pulse">👆</span> Hacé clic en las pestañas de arriba para empezar</p>
+      </div>
+
+      <div class="interactive-box">
+        <h4>🎯 Objetivos de Aprendizaje</h4>
+        <p>Al finalizar este módulo vas a poder:</p>
+        <div class="card-grid" style="margin-top: 15px;">
+          <div class="card" style="cursor: default;"><div class="card-icon">📥</div><h4>Acceder</h4><p>Acceder a información en diferentes fuentes y formatos digitales</p></div>
+          <div class="card" style="cursor: default;"><div class="card-icon">🧩</div><h4>Resolver</h4><p>Resolver actividades de búsqueda orientada (WebQuest)</p></div>
+          <div class="card" style="cursor: default;"><div class="card-icon">🧠</div><h4>Desarrollar</h4><p>Localizar, analizar, evaluar, sintetizar y usar información pertinentemente</p></div>
+          <div class="card" style="cursor: default;"><div class="card-icon">💡</div><h4>Comprender</h4><p>Entender el valor de la información para la toma de decisiones</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: WEB & HIPERTEXTO -->
+    <div class="tab-content" id="tab-1">
+      <h1>🌐 La Web y el Hipertexto</h1>
+      <p>¿Alguna vez te preguntaste cómo funciona internet? Todo empieza con conceptos fundamentales que hoy son parte de nuestra vida cotidiana.</p>
+
+      <h2>📡 Digitalización de la Información</h2>
+      <p>La <span class="highlight">digitalización</span> es el proceso de convertir información analógica (fotos en papel, cassettes, libros) a formato digital (bits: 0 y 1). En Argentina 2026, esto es clave:</p>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📄</div>
+          <h4>Documentos Digitales</h4>
+          <p>El DNI ahora es digital (Mi Argentina), las facturas son electrónicas (AFIP), y las escuelas usan SIPE.</p>
+          <div class="card-example">Ej: El SIPE (Sistema Integral de Permanencia Escolar) de la PBA digitaliza asistencias y calificaciones.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎵</div>
+          <h4>Medios Digitales</h4>
+          <p>Spotify, YouTube Music y Flow reemplazaron los CDs. El streaming es digitalización en tiempo real.</p>
+          <div class="card-example">Ej: Flow (Telecom Argentina) permite ver TV en cualquier dispositivo.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏛️</div>
+          <h4>Gobierno Digital</h4>
+          <p>El Estado argentino digitaliza trámites: turnos online, pagos digitales, expedientes electrónicos.</p>
+          <div class="card-example">Ej: TAD (Trámites a Distancia) de la PBA para gestiones escolares.</div>
+        </div>
+      </div>
+
+      <h2>🔗 Conceptos Clave de la Web</h2>
+      <p>Tocá cada tarjeta para descubrir la definición:</p>
+      <div class="card-grid">
+        <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-icon">🌐</div>
+                <h4>World Wide Web (WWW)</h4>
+                <p class="flip-hint">Tocá para ver la definición →</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>¿Qué es?</h4>
+                <p>Sistema de información global que usa internet para acceder a documentos interconectados mediante hipervínculos. Inventada por Tim Berners-Lee en 1989.</p>
+                <p style="margin-top:10px; font-size:0.85rem; color:var(--accent);">💡 Dato: ¡No es lo mismo que Internet! La WWW es un servicio que usa Internet.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-icon">📜</div>
+                <h4>HTML</h4>
+                <p class="flip-hint">Tocá para ver la definición →</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>HyperText Markup Language</h4>
+                <p>Lenguaje de marcado que define la estructura de las páginas web. Usa "etiquetas" para indicar títulos, párrafos, imágenes, etc.</p>
+                <div class="code-block" style="margin-top:10px; font-size:0.75rem;">
+<span class="code-tag">&lt;h1&gt;</span><span class="code-text">Hola Mundo</span><span class="code-tag">&lt;/h1&gt;</span><br>
+<span class="code-tag">&lt;p&gt;</span><span class="code-text">Esto es un párrafo</span><span class="code-tag">&lt;/p&gt;</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-icon">📡</div>
+                <h4>HTTP/HTTPS</h4>
+                <p class="flip-hint">Tocá para ver la definición →</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>Protocolo de Transferencia</h4>
+                <p>Conjunto de reglas que permite la comunicación entre navegador y servidor. HTTPS es la versión segura (con candadito 🔒).</p>
+                <p style="margin-top:10px; font-size:0.85rem; color:var(--accent);">💡 Si no tiene HTTPS, ¡no ingreses datos personales!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-icon">🔗</div>
+                <h4>Hipervínculo</h4>
+                <p class="flip-hint">Tocá para ver la definición →</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>Link o Enlace</h4>
+                <p>Elemento clickeable que te lleva a otro documento, página o recurso. Es la base de la navegación web.</p>
+                <p style="margin-top:10px; font-size:0.85rem; color:var(--accent);">💡 El color azul y el subrayado son convenciones, no reglas estrictas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-icon">🎬</div>
+                <h4>Hipermedia</h4>
+                <p class="flip-hint">Tocá para ver la definición →</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>Texto + Multimedia</h4>
+                <p>Extensión del hipertexto que incluye imágenes, audio, video y animaciones interconectados.</p>
+                <p style="margin-top:10px; font-size:0.85rem; color:var(--accent);">💡 TikTok, Instagram y YouTube son hipermedia pura.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-icon">📧</div>
+                <h4>Correo Electrónico</h4>
+                <p class="flip-hint">Tocá para ver la definición →</p>
+              </div>
+              <div class="flip-card-back">
+                <h4>e-mail</h4>
+                <p>Sistema de comunicación digital que permite enviar mensajes, archivos y multimedia a través de internet. Usa protocolos SMTP, POP3 e IMAP.</p>
+                <p style="margin-top:10px; font-size:0.85rem; color:var(--accent);">💡 En Argentina, muchos usan @gmail, @hotmail o correos institucionales @bue.edu.ar</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2>💬 Otros Servicios de la Web</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h4>Chat</h4>
+          <p>Comunicación en tiempo real por texto. Evolucionó desde el IRC de los 90 hasta WhatsApp, Discord y Telegram.</p>
+          <div class="card-example">Ej: Los grupos de WhatsApp de padres de la escuela son "chats".</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎙️</div>
+          <h4>Podcast</h4>
+          <p>Programas de audio digitales que podés escuchar on-demand. Crecieron explosivamente en Argentina.</p>
+          <div class="card-example">Ej: "El Destape", "Cienfuegos", "La Cruda" - podcasts argentinos populares en 2026.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📡</div>
+          <h4>RSS</h4>
+          <p>Really Simple Syndication. Sistema para suscribirse a actualizaciones de sitios web sin visitarlos manualmente.</p>
+          <div class="card-example">Ej: Los lectores de noticias como Feedly agregan RSS de Clarín, La Nación, etc.</div>
+        </div>
+      </div>
+
+
+      <h2>🕳️ Deep Web y Dark Web</h2>
+      <p>Internet es mucho más grande de lo que vemos. Cuando hacés una búsqueda en Google, solo accedés a una <span class="highlight">pequeña porción</span> de toda la información existente. El resto está en la Deep Web.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🧊</div>
+          <h4>Surface Web (Web Superficial)</h4>
+          <p>Todo lo que podés encontrar con un buscador normal (Google, Bing). Está indexado públicamente y cualquiera puede acceder.</p>
+          <div class="card-example">
+            <strong>Ejemplos:</strong><br>
+            • Sitios de noticias (Clarín, La Nación)<br>
+            • Redes sociales (Instagram, X/Twitter)<br>
+            • Wikipedia, YouTube, blogs<br>
+            • <strong>Representa ~10% de toda la web</strong>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🕳️</div>
+          <h4>Deep Web (Web Profunda)</h4>
+          <p>Contenido que NO está indexado por los buscadores convencionales. No es ilegal: simplemente requiere acceso directo, login o permisos especiales.</p>
+          <div class="card-example">
+            <strong>Ejemplos:</strong><br>
+            • Bases de datos académicas (JSTOR, SciELO)<br>
+            • Contenido de redes sociales privado<br>
+            • Expedientes judiciales digitales<br>
+            • Repositorios universitarios (Repositorio CONICET)<br>
+            • <strong>Representa ~90% de toda la web</strong>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚫</div>
+          <h4>Dark Web (Web Oscura)</h4>
+          <p>Una <strong>pequeña parte</strong> de la Deep Web que requiere software especial (como Tor) para acceder. Anonimiza la identidad del usuario.</p>
+          <div class="card-example">
+            <strong>Usos legítimos:</strong><br>
+            • Periodismo de investigación (filtraciones)<br>
+            • Comunicación en países con censura<br>
+            • Whistleblowers (denunciantes)<br><br>
+            <strong style="color:var(--error)">⚠️ También se usa para actividades ilegales:</strong><br>
+            • Venta de drogas, armas, datos robados
+          </div>
+        </div>
+      </div>
+
+      <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); border-radius: 12px; padding: 20px; margin: 25px 0;">
+        <h4 style="color: var(--error); margin-bottom: 10px;">⚠️ Importante: Deep Web ≠ Dark Web</h4>
+        <p style="margin-bottom: 10px;">Mucha gente confunde estos términos. La <strong>Deep Web</strong> es simplemente contenido no indexado (como tu correo de Gmail o tu historial de búsqueda). La <strong>Dark Web</strong> es una subcapa que requiere software especial y se asocia con anonimato total.</p>
+        <p><strong>💡 Dato:</strong> Cada vez que entrás a tu cuenta de banca online (Home Banking de tu banco), estás en la Deep Web. ¡No es peligroso, es privado!</p>
+      </div>
+
+      <div class="interactive-box">
+        <h4>🧊🕳️⚫ Analogía: El Iceberg de Internet</h4>
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px;">
+          <div style="width: 100%; max-width: 500px;">
+            <!-- Surface -->
+            <div style="background: linear-gradient(135deg, #38bdf8, #818cf8); padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+              <div style="font-size: 24px; margin-bottom: 5px;">🧊</div>
+              <strong>Surface Web</strong><br>
+              <span style="font-size: 0.9rem;">~10% — Todo lo indexable por Google</span>
+            </div>
+            <!-- Deep Web -->
+            <div style="background: linear-gradient(135deg, #334155, #1e293b); padding: 30px 20px; text-align: center; border-top: 2px dashed var(--surface-light);">
+              <div style="font-size: 24px; margin-bottom: 5px;">🕳️</div>
+              <strong>Deep Web</strong><br>
+              <span style="font-size: 0.9rem;">~90% — Contenido no indexado (bases de datos, intranets, contenido privado)</span>
+            </div>
+            <!-- Dark Web -->
+            <div style="background: linear-gradient(135deg, #0f172a, #000); padding: 20px; border-radius: 0 0 12px 12px; text-align: center; border-top: 2px dashed var(--error);">
+              <div style="font-size: 24px; margin-bottom: 5px;">⚫</div>
+              <strong>Dark Web</strong><br>
+              <span style="font-size: 0.9rem; color: var(--error);">Una fracción de la Deep Web — Requiere Tor, anonimato total</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-container" id="quiz1">
+        <h3>🧪 Autoevaluación: Web & Hipertexto</h3>
+        <div class="quiz-progress" id="quiz1-progress"></div>
+        <div id="quiz1-content"></div>
+      </div>
+    </div>
+
+    <!-- TAB 2: BUSCADORES -->
+    <div class="tab-content" id="tab-2">
+      <h1>🔍 Buscadores de Información</h1>
+      <p>Google no es el único buscador. Existen muchos tipos, cada uno con una función específica. Aprender a usarlos es una habilidad clave del siglo XXI.</p>
+
+      <h2>🕷️ ¿Cómo funciona un buscador?</h2>
+      <div class="interactive-box">
+        <h4>🤖 Proceso de Indexación</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 20px;">
+          <div style="text-align: center; padding: 20px; background: var(--surface); border-radius: 12px; min-width: 150px;">
+            <div style="font-size: 40px;">🕷️</div>
+            <h4 style="margin: 10px 0;">1. Rastreo</h4>
+            <p style="font-size: 0.9rem;">Los "bots" o arañas recorren la web siguiendo links</p>
+          </div>
+          <div style="font-size: 30px; display: flex; align-items: center;">→</div>
+          <div style="text-align: center; padding: 20px; background: var(--surface); border-radius: 12px; min-width: 150px;">
+            <div style="font-size: 40px;">📚</div>
+            <h4 style="margin: 10px 0;">2. Indexación</h4>
+            <p style="font-size: 0.9rem;">Guardan el contenido en enormes bases de datos</p>
+          </div>
+          <div style="font-size: 30px; display: flex; align-items: center;">→</div>
+          <div style="text-align: center; padding: 20px; background: var(--surface); border-radius: 12px; min-width: 150px;">
+            <div style="font-size: 40px;">⚡</div>
+            <h4 style="margin: 10px 0;">3. Ranking</h4>
+            <p style="font-size: 0.9rem;">Algoritmos ordenan resultados por relevancia</p>
+          </div>
+        </div>
+      </div>
+
+      <h2>📂 Tipos de Buscadores</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🏛️</div>
+          <h4>Buscadores Jerárquicos</h4>
+          <p>Los más comunes. Usan arañas para indexar todo internet y algoritmos para ordenar resultados.</p>
+          <div class="card-example">
+            <strong>Ejemplos:</strong><br>
+            • Google (líder mundial)<br>
+            • Bing (Microsoft)<br>
+            • Yahoo! Search<br>
+            • <span style="color:var(--accent)">DuckDuckGo</span> (privacidad)
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📁</div>
+          <h4>Directorios Web</h4>
+          <p>Organizan sitios en categorías manuales. Hoy casi en desuso, pero fueron fundamentales en los 90.</p>
+          <div class="card-example">
+            <strong>Ejemplos:</strong><br>
+            • DMOZ (Open Directory Project) - ya cerró<br>
+            • Yahoo! Directory - descontinuado<br>
+            • Directorios temáticos educativos
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h4>Buscadores Especializados</h4>
+          <p>Se enfocan en un área específica: académica, médica, legal, de compras, etc.</p>
+          <div class="card-example">
+            <strong>Ejemplos:</strong><br>
+            • Google Scholar (académico)<br>
+            • PubMed (medicina)<br>
+            • Wolfram Alpha (computacional)<br>
+            • MercadoLibre (compras - 🇦🇷)
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔀</div>
+          <h4>Metabuscadores</h4>
+          <p>No tienen base de datos propia. Consultan varios buscadores a la vez y combinan resultados.</p>
+          <div class="card-example">
+            <strong>Ejemplos:</strong><br>
+            • Dogpile (combina Google, Yahoo, Yandex)<br>
+            • MetaCrawler<br>
+            • <span style="color:var(--accent)">Skyscanner</span> (vuelos - metabuscador turístico)<br>
+            • <span style="color:var(--accent)">Indeed</span> (empleo - metabuscador laboral)<br>
+            • <span style="color:var(--accent)">Trivago</span> (hoteles)
+          </div>
+        </div>
+      </div>
+
+      <h2>🔧 Operadores Booleanos</h2>
+      <p>Los <span class="highlight">operadores booleanos</span> son palabras especiales que permiten refinar búsquedas. Son como filtros de superhéroe:</p>
+
+      <div class="boolean-demo">
+        <div class="boolean-circle circle-a">Resultados<br>con A</div>
+        <div class="operator-symbol">AND</div>
+        <div class="boolean-circle circle-b">Resultados<br>con B</div>
+        <div class="operator-symbol">=</div>
+        <div class="boolean-circle circle-and">Solo lo que<br>tenga A Y B<br>(intersección)</div>
+      </div>
+      <div class="boolean-demo">
+        <div class="boolean-circle circle-a">Resultados<br>con A</div>
+        <div class="operator-symbol">OR</div>
+        <div class="boolean-circle circle-b">Resultados<br>con B</div>
+        <div class="operator-symbol">=</div>
+        <div class="boolean-circle circle-or">Todo lo que<br>tenga A O B<br>(unión)</div>
+      </div>
+      <div class="boolean-demo">
+        <div class="boolean-circle circle-a">Resultados<br>con A</div>
+        <div class="operator-symbol">NOT</div>
+        <div class="boolean-circle circle-b">Resultados<br>con B</div>
+        <div class="operator-symbol">=</div>
+        <div class="boolean-circle circle-not">A sin B<br>(exclusión)</div>
+      </div>
+
+      <div class="interactive-box">
+        <h4>🧪 Simulador de Búsqueda</h4>
+        <p>Probá escribir distintas combinaciones y mirá qué resultados "calzan" según los operadores. Ejemplos para copiar: <code style="background: var(--surface); padding:2px 6px; border-radius:4px;">messi AND seleccion</code> · <code style="background: var(--surface); padding:2px 6px; border-radius:4px;">messi OR maradona</code> · <code style="background: var(--surface); padding:2px 6px; border-radius:4px;">messi NOT barcelona</code></p>
+        <div class="search-bar">
+          <input type="text" class="search-input" id="searchInput" placeholder="Ej: messi AND seleccion / messi NOT barcelona..." onkeyup="if(event.key==='Enter')simulateSearch()">
+          <button class="btn btn-primary" onclick="simulateSearch()">🔍 Buscar</button>
+        </div>
+        <div id="searchExplain" style="margin-bottom: 12px; font-size: 0.9rem; color: var(--accent); display:none;"></div>
+        <div class="search-results" id="searchResults">
+          <div class="result-item" data-tags="messi seleccion">
+            <div class="result-title">Lionel Messi - Wikipedia</div>
+            <div class="result-url">https://es.wikipedia.org/wiki/Lionel_Messi</div>
+            <div class="result-desc">Lionel Andrés Messi Cuccittini es un futbolista argentino... capitán de la selección argentina, campeón del mundo en Qatar 2022...</div>
+            <div class="result-tags"><span class="tag">messi</span><span class="tag">seleccion</span></div>
+          </div>
+          <div class="result-item" data-tags="messi barcelona">
+            <div class="result-title">Messi en el Barcelona: historia completa</div>
+            <div class="result-url">https://ejemplo.com/messi-barcelona</div>
+            <div class="result-desc">Repasamos la carrera de Messi en el FC Barcelona desde 2004 hasta 2021, sus títulos y números...</div>
+            <div class="result-tags"><span class="tag">messi</span><span class="tag">barcelona</span></div>
+          </div>
+          <div class="result-item" data-tags="seleccion maradona">
+            <div class="result-title">Selección Argentina - CONMEBOL</div>
+            <div class="result-url">https://conmebol.com/seleccion-argentina</div>
+            <div class="result-desc">La albiceleste, campeona del mundo Qatar 2022. Historia, jugadores históricos como Maradona y la actualidad del equipo nacional...</div>
+            <div class="result-tags"><span class="tag">seleccion</span><span class="tag">maradona</span></div>
+          </div>
+          <div class="result-item" data-tags="maradona barcelona">
+            <div class="result-title">Diego Maradona en el Barcelona (1982-1984)</div>
+            <div class="result-url">https://ejemplo.com/maradona-barcelona</div>
+            <div class="result-desc">El paso de Diego Armando Maradona por el FC Barcelona, sus lesiones y conflictos en el club catalán...</div>
+            <div class="result-tags"><span class="tag">maradona</span><span class="tag">barcelona</span></div>
+          </div>
+          <div class="result-item" data-tags="messi maradona seleccion">
+            <div class="result-title">Messi y Maradona: comparación de leyendas argentinas</div>
+            <div class="result-url">https://ejemplo.com/messi-vs-maradona</div>
+            <div class="result-desc">Análisis comparativo entre los dos ídolos máximos de la selección argentina y el fútbol mundial...</div>
+            <div class="result-tags"><span class="tag">messi</span><span class="tag">maradona</span><span class="tag">seleccion</span></div>
+          </div>
+        </div>
+        <div id="searchEmpty" style="display:none; text-align:center; padding: 20px; color: var(--text-muted);">
+          😕 Ningún resultado coincide con esa búsqueda. Probá otra combinación de AND / OR / NOT.
+        </div>
+      </div>
+
+      <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); border-radius: 12px; padding: 20px; margin: 25px 0;">
+        <h4 style="color: var(--warning); margin-bottom: 10px;">⚠️ Tips de Búsqueda Avanzada</h4>
+        <ul style="list-style: none; padding: 0;">
+          <li style="margin: 8px 0;">🔍 <code style="background: var(--surface); padding: 2px 6px; border-radius: 4px;">"frase exacta"</code> - Busca la frase literal entre comillas</li>
+          <li style="margin: 8px 0;">🔍 <code style="background: var(--surface); padding: 2px 6px; border-radius: 4px;">site:edu.ar</code> - Solo resultados de dominios .edu.ar</li>
+          <li style="margin: 8px 0;">🔍 <code style="background: var(--surface); padding: 2px 6px; border-radius: 4px;">filetype:pdf</code> - Solo archivos PDF</li>
+          <li style="margin: 8px 0;">🔍 <code style="background: var(--surface); padding: 2px 6px; border-radius: 4px;">intitle:NTICx</code> - La palabra debe estar en el título</li>
+        </ul>
+      </div>
+
+      <h2>✅ Cómo Evaluar si una Fuente es Confiable</h2>
+      <p>Encontrar información es fácil. <span class="highlight">Evaluarla</span> es la habilidad realmente importante. Antes de usar una fuente para una tarea, un trabajo o para formar tu opinión, hacete estas 5 preguntas:</p>
+
+      <div class="card-grid">
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">👤</div>
+          <h4>1. Autoría</h4>
+          <p>¿Quién escribió esto? ¿Es una persona, institución u organismo identificable? ¿Tiene credenciales o experiencia en el tema?</p>
+          <div class="card-example">✅ Bien: un artículo firmado por un investigador del CONICET.<br>⚠️ Dudoso: una publicación anónima en un grupo de Facebook.</div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">📅</div>
+          <h4>2. Actualidad</h4>
+          <p>¿Cuándo se publicó o actualizó por última vez? En temas de tecnología, salud o ciencia, la información vieja puede estar obsoleta.</p>
+          <div class="card-example">✅ Bien: una nota de 2025 sobre vacunas, con fecha visible.<br>⚠️ Dudoso: una "noticia" sin fecha que circula hace años por WhatsApp.</div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🎯</div>
+          <h4>3. Objetivo</h4>
+          <p>¿Para qué se escribió? ¿Busca informar, vender, opinar o convencer? Un sitio que vende algo puede exagerar beneficios.</p>
+          <div class="card-example">✅ Bien: un artículo informativo de un medio reconocido.<br>⚠️ Dudoso: una web que vende "productos milagrosos" y también "informa" sobre sus beneficios.</div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🔗</div>
+          <h4>4. Respaldo / Fuentes</h4>
+          <p>¿Cita de dónde sacó los datos? ¿Otros medios o fuentes serias dicen lo mismo? La triangulación (comparar varias fuentes) es clave.</p>
+          <div class="card-example">✅ Bien: un artículo que enlaza al estudio científico original.<br>⚠️ Dudoso: afirmaciones grandes sin ningún link ni referencia.</div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🌐</div>
+          <h4>5. Dominio y diseño</h4>
+          <p>El tipo de dominio da pistas: <strong>.gob.ar</strong> (gobierno), <strong>.edu.ar</strong> (educación), <strong>.org</strong> (organizaciones). Un diseño descuidado, con muchos errores de ortografía o publicidad invasiva, es señal de alerta.</p>
+          <div class="card-example">✅ Bien: argentina.gob.ar, conicet.gov.ar, una universidad.<br>⚠️ Dudoso: sitios con URLs raras, llenas de pop-ups y banners parpadeantes.</div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🕵️</div>
+          <h4>Herramientas de verificación</h4>
+          <p>Ante una noticia dudosa, usá verificadores de hechos (fact-checking) antes de compartirla.</p>
+          <div class="card-example"><strong>En Argentina:</strong><br>• Chequeado.com<br>• Reverso (Agencia AFP)<br><strong>Internacional:</strong><br>• Google Fact Check Explorer<br>• Búsqueda inversa de imágenes (Google Lens, TinEye)</div>
+        </div>
+      </div>
+
+      <div class="interactive-box">
+        <h4>🧪 Caso práctico: ¿Le creés o no?</h4>
+        <p>Leé cada situación y decidí si la fuente parece confiable o no. Hacé clic para revelar el análisis:</p>
+        <div class="card-grid" style="margin-top: 15px;">
+          <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+            <div class="flip-card">
+              <div class="flip-card-inner">
+                <div class="flip-card-front">
+                  <div class="flip-icon">📰</div>
+                  <h4 style="font-size:0.95rem;">"Un audio de WhatsApp dice que cerrarán todas las escuelas la semana que viene"</h4>
+                  <p class="flip-hint">Tocá para ver el análisis →</p>
+                </div>
+                <div class="flip-card-back">
+                  <h4>⚠️ Señales de alerta</h4>
+                  <p style="font-size:0.85rem;">Sin autor identificable, sin fecha, formato "viral" típico de cadenas. <strong>Acción correcta:</strong> buscar la noticia en el sitio oficial del gobierno provincial o de la escuela antes de creerlo o reenviarlo.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+            <div class="flip-card">
+              <div class="flip-card-inner">
+                <div class="flip-card-front">
+                  <div class="flip-icon">🏛️</div>
+                  <h4 style="font-size:0.95rem;">Una nota sobre una nueva ley, publicada en argentina.gob.ar con fecha de esta semana</h4>
+                  <p class="flip-hint">Tocá para ver el análisis →</p>
+                </div>
+                <div class="flip-card-back">
+                  <h4>✅ Señales positivas</h4>
+                  <p style="font-size:0.85rem;">Dominio .gob.ar oficial, fecha reciente, organismo identificable. Aun así, conviene cruzar con un medio periodístico para tener contexto y otras miradas.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flip-card-container" onclick="this.querySelector('.flip-card').classList.toggle('flipped')">
+            <div class="flip-card">
+              <div class="flip-card-inner">
+                <div class="flip-card-front">
+                  <div class="flip-icon">💊</div>
+                  <h4 style="font-size:0.95rem;">Un blog asegura que un alimento "cura" una enfermedad y al final vende un suplemento</h4>
+                  <p class="flip-hint">Tocá para ver el análisis →</p>
+                </div>
+                <div class="flip-card-back">
+                  <h4>⚠️ Conflicto de interés</h4>
+                  <p style="font-size:0.85rem;">El objetivo real es vender, no informar. En temas de salud siempre conviene consultar fuentes médicas oficiales (Ministerio de Salud, OMS) y a un profesional.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="quiz-container" id="quiz2">
+        <h3>🧪 Autoevaluación: Buscadores</h3>
+        <div class="quiz-progress" id="quiz2-progress"></div>
+        <div id="quiz2-content"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: EVOLUCIÓN WEB -->
+    <div class="tab-content" id="tab-3">
+      <h1>🤖 Evolución de la Web: 1.0 a 4.0</h1>
+      <p>La web no siempre fue como la conocemos hoy. Pasó por etapas que transformaron cómo interactuamos con la información.</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="year">1991 - 2004</div>
+          <h4>🌐 Web 1.0 - La Red Pasiva</h4>
+          <p>La web "de solo lectura". Los usuarios consumían contenido estático creado por webmasters. Páginas HTML fijas, sin interactividad.</p>
+          <div class="card-example">
+            <strong>Características:</strong> Sitios estáticos, guestbooks, contadores de visitas, geocities.<br>
+            <strong>Ejemplo argentino:</strong> Los primeros sitios de diarios como Clarín.com en los 90, portales como ElOtroLado.net.
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2004 - 2010</div>
+          <h4>👥 Web 2.0 - La Red Participativa</h4>
+          <p>La web "social". Los usuarios pasan de consumidores a creadores de contenido. Surgen las redes sociales, blogs, wikis.</p>
+          <div class="card-example">
+            <strong>Características:</strong> Blogs, wikis, redes sociales, tagging, AJAX, APIs.<br>
+            <strong>Ejemplos argentinos:</strong> Taringa! (foro/comunidad argentina), Facebook, Twitter/X, YouTube, Wikipedia.
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2010 - 2020</div>
+          <h4>🧠 Web 3.0 - La Web Semántica</h4>
+          <p>La web "inteligente". Las máquinas entienden el significado de los datos. Uso de metadatos, ontologías, datos vinculados (Linked Data).</p>
+          <div class="card-example">
+            <strong>Características:</strong> RDF, ontologías, motores de recomendación, asistentes de voz.<br>
+            <strong>Ejemplos:</strong> Siri, Google Assistant, recomendaciones de Netflix/Spotify, motores de búsqueda semántica.
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2020 - 2026</div>
+          <h4>🤖 Web 4.0 - La Web de la IA</h4>
+          <p>La web "activa y predictiva". La inteligencia artificial personaliza la experiencia, predice necesidades y actúa proactivamente.</p>
+          <div class="card-example">
+            <strong>Características:</strong> IA generativa, personalización extrema, web ubícua (IoT), metaverso, asistentes conversacionales.<br>
+            <strong>Ejemplos argentinos 2026:</strong> ChatGPT/Claude para tareas escolares, asistentes de banca digital (Mercado Pago, Ualá), recomendaciones de IA en PedidosYa, diagnóstico médico con IA en hospitales públicos de PBA.
+          </div>
+        </div>
+      </div>
+
+      <h2>📊 Comparativa Visual</h2>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95rem;">
+          <thead>
+            <tr style="background: var(--surface-light);">
+              <th style="padding: 14px; text-align: left; border: 1px solid var(--surface-light); color: var(--accent);">Aspecto</th>
+              <th style="padding: 14px; text-align: left; border: 1px solid var(--surface-light); color: var(--accent);">Web 1.0</th>
+              <th style="padding: 14px; text-align: left; border: 1px solid var(--surface-light); color: var(--accent2);">Web 2.0</th>
+              <th style="padding: 14px; text-align: left; border: 1px solid var(--surface-light); color: var(--accent3);">Web 3.0</th>
+              <th style="padding: 14px; text-align: left; border: 1px solid var(--surface-light); color: var(--success);">Web 4.0</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 12px; border: 1px solid var(--surface-light); font-weight: 600;">Rol del usuario</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">👁️ Espectador</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">✍️ Creador</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">🎯 Cliente</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">🤝 Colaborador con IA</td>
+            </tr>
+            <tr style="background: rgba(30,41,59,0.5);">
+              <td style="padding: 12px; border: 1px solid var(--surface-light); font-weight: 600;">Contenido</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Estático</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Dinámico UGC</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Semántico</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Generado por IA</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid var(--surface-light); font-weight: 600;">Interacción</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Hipervínculos</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Social, comentarios</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Consultas inteligentes</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Conversacional, predictiva</td>
+            </tr>
+            <tr style="background: rgba(30,41,59,0.5);">
+              <td style="padding: 12px; border: 1px solid var(--surface-light); font-weight: 600;">Ejemplo 🇦🇷</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Clarín.com 1998</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Taringa!, Facebook</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">Google Assistant</td>
+              <td style="padding: 12px; border: 1px solid var(--surface-light);">ChatGPT, asistentes bancarios IA</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="interactive-box">
+        <h4>🎮 Actividad Interactiva: ¿Qué Web es?</h4>
+        <p>Leé el escenario y elegí a qué versión de la web corresponde:</p>
+        <div id="webGame" style="margin-top: 20px;">
+          <div style="background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+            <p style="font-weight: 600; margin-bottom: 15px; color: var(--text);">Escenario 1: "Subo una foto a Instagram, mis amigos le dan 'me gusta' y comentan."</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback1')">Web 1.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, true, 'webFeedback1')">Web 2.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback1')">Web 3.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback1')">Web 4.0</button>
+            </div>
+            <div class="quiz-feedback" id="webFeedback1"></div>
+          </div>
+          <div style="background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+            <p style="font-weight: 600; margin-bottom: 15px; color: var(--text);">Escenario 2: "Leo un artículo de Wikipedia sin poder editarlo ni comentar."</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, true, 'webFeedback2')">Web 1.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback2')">Web 2.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback2')">Web 3.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback2')">Web 4.0</button>
+            </div>
+            <div class="quiz-feedback" id="webFeedback2"></div>
+          </div>
+          <div style="background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+            <p style="font-weight: 600; margin-bottom: 15px; color: var(--text);">Escenario 3: "Le pregunto a ChatGPT que me resuma un texto y me sugiere fuentes."</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback3')">Web 1.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback3')">Web 2.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, false, 'webFeedback3')">Web 3.0</button>
+              <button class="btn btn-secondary" onclick="checkWebAnswer(this, true, 'webFeedback3')">Web 4.0</button>
+            </div>
+            <div class="quiz-feedback" id="webFeedback3"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-container" id="quiz3">
+        <h3>🧪 Autoevaluación: Evolución de la Web</h3>
+        <div class="quiz-progress" id="quiz3-progress"></div>
+        <div id="quiz3-content"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: CIBERCULTURA -->
+    <div class="tab-content" id="tab-4">
+      <h1>🌎 Cibercultura y Sociedad Red</h1>
+      <p>Internet no es solo tecnología: es cultura, economía, política y sociedad. Entender estos conceptos nos hace ciudadanos digitales más conscientes.</p>
+
+      <h2>🧠 Conceptos Fundamentales</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🌐</div>
+          <h4>Cibercultura</h4>
+          <p>Conjunto de prácticas, valores, símbolos y normas que surgen del uso de internet y las tecnologías digitales. Es la "cultura de internet".</p>
+          <div class="card-example">
+            <strong>Ejemplos argentinos 2026:</strong><br>
+            • Memes políticos (mileistas, opositores)<br>
+            • Lenguaje digital: "crack", "fachero", "re contra"<br>
+            • Streamers argentinos: Coscu, Ibai, Spreen<br>
+            • Comunidades de Discord de escuelas secundarias
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🕸️</div>
+          <h4>Sociedad Red</h4>
+          <p>Concepto del sociólogo Manuel Castells. Describe una sociedad donde la estructura organizativa es una red de redes, no piramidal.</p>
+          <div class="card-example">
+            <strong>En Argentina:</strong><br>
+            • Organizaciones sociales que usan WhatsApp para convocatorias<br>
+            • Redes de trueque digital (Trueque+)<br>
+            • Colectivos de arte digital (NFTs argentinos)
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h4>Sociedad de la Información</h4>
+          <p>Sociedad donde la información es el recurso económico principal. La producción, distribución y consumo de información generan valor.</p>
+          <div class="card-example">
+            <strong>En Argentina:</strong><br>
+            • Economía del conocimiento (software, biotech)<br>
+            • MercadoLibre como plataforma de información comercial<br>
+            • Sistema de información educativa (SIPE, SINIDE)
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎓</div>
+          <h4>Sociedad del Conocimiento</h4>
+          <p>Va más allá de la información: se valora el conocimiento aplicado, la creatividad, la innovación y el aprendizaje permanente.</p>
+          <div class="card-example">
+            <strong>En Argentina:</strong><br>
+            • Programas como Argentina Programa (educación tech)<br>
+            • Universidades con MOOCs (Coursera, edX)<br>
+            • Comunidades de aprendizaje en GitHub/StackOverflow
+          </div>
+        </div>
+      </div>
+
+      <h2>🎮 La Cibercultura Argentina</h2>
+      <div class="interactive-box">
+        <h4>🇦🇷 Fenómenos Digitales Argentinos 2026</h4>
+        <div class="card-grid" style="margin-top: 15px;">
+          <div style="background: var(--surface); padding: 20px; border-radius: 12px;">
+            <div style="font-size: 30px; margin-bottom: 10px;">📱</div>
+            <h4 style="margin-bottom: 8px;">Viralidad</h4>
+            <p style="font-size: 0.9rem;">Videos de TikTok de estudiantes secundarios que se vuelven virales nacionales. El "algoritmo argentino" favorece contenido local.</p>
+          </div>
+          <div style="background: var(--surface); padding: 20px; border-radius: 12px;">
+            <div style="font-size: 30px; margin-bottom: 10px;">💰</div>
+            <h4 style="margin-bottom: 8px;">Economía Digital</h4>
+            <p style="font-size: 0.9rem;">Creadores de contenido monetizan en YouTube, Twitch, Patreon. "Creador de contenido" es una profesión real en 2026.</p>
+          </div>
+          <div style="background: var(--surface); padding: 20px; border-radius: 12px;">
+            <div style="font-size: 30px; margin-bottom: 10px;">🗳️</div>
+            <h4 style="margin-bottom: 8px;">Política 2.0</h4>
+            <p style="font-size: 0.9rem;">Campañas electorales en redes, fact-checking en tiempo real, "trolls" y bots. La política argentina se juega fuerte en X/Twitter.</p>
+          </div>
+          <div style="background: var(--surface); padding: 20px; border-radius: 12px;">
+            <div style="font-size: 30px; margin-bottom: 10px;">🎮</div>
+            <h4 style="margin-bottom: 8px;">Gaming Nacional</h4>
+            <p style="font-size: 0.9rem;">Argentina tiene escena de e-sports creciente. Equipos como 9z Team compiten internacionalmente. Los juegos online son espacio social.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); border-radius: 12px; padding: 20px; margin: 25px 0;">
+        <h4 style="color: var(--error); margin-bottom: 10px;">⚠️ Alfabetización Mediática: ¡Cuidado!</h4>
+        <p style="margin-bottom: 15px;">No todo lo que leemos en internet es verdad. En 2026, la desinformación es un problema real:</p>
+        <ul style="list-style: none; padding: 0;">
+          <li style="margin: 8px 0;">🚨 <strong>Fake News:</strong> Noticias falsas que circulan por WhatsApp y redes. Verificá en Chequeado.com o Reverso.</li>
+          <li style="margin: 8px 0;">🚨 <strong>Deepfakes:</strong> Videos manipulados con IA. En Argentina ya hubo casos de políticos.</li>
+          <li style="margin: 8px 0;">🚨 <strong>Burbuja de filtros:</strong> El algoritmo te muestra solo lo que coincide con tus opiniones. ¡Salí de tu zona de confort!</li>
+          <li style="margin: 8px 0;">🚨 <strong>Phishing:</strong> Mensajes falsos que roban datos. Nunca des tu contraseña por mail.</li>
+        </ul>
+      </div>
+
+      <h2>📖 Wikipedia: ¿confiable o no?</h2>
+      <p>Wikipedia es la enciclopedia colaborativa más grande del mundo. Cualquiera puede editarla, lo cual genera una pregunta clásica en clase: <span class="highlight">¿se puede usar como fuente?</span></p>
+
+      <div class="card-grid">
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">✅</div>
+          <h4>Para qué SÍ sirve</h4>
+          <p>Excelente <strong>punto de partida</strong>: te da una visión general del tema, fechas, datos básicos y, lo más importante, <strong>enlaces a las fuentes originales</strong> al final del artículo.</p>
+          <div class="card-example">Usala para entender de qué se trata un tema y para encontrar links a estudios, libros o sitios oficiales citados en la sección "Referencias".</div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">⚠️</div>
+          <h4>Para qué NO conviene citarla directamente</h4>
+          <p>En trabajos académicos formales, no se cita "Wikipedia dice..." porque el contenido puede cambiar en cualquier momento y cualquiera puede editarlo (aunque hay revisión comunitaria).</p>
+          <div class="card-example">Mejor práctica: leé el artículo de Wikipedia, identificá la fuente original en las referencias, y citá esa fuente original.</div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🔍</div>
+          <h4>Revisá la "Discusión" e "Historial"</h4>
+          <p>Cada artículo de Wikipedia tiene pestañas de "Historial" (todos los cambios hechos) y "Discusión" (debates entre editores). Mirar esto te muestra si un tema es controvertido o si hay ediciones recientes sospechosas.</p>
+          <div class="card-example">Si un artículo tiene un cartel de "Este artículo necesita referencias adicionales", tomalo con cautela extra.</div>
+        </div>
+      </div>
+
+      <h2>©️ Derechos de Autor y Licencias Creative Commons</h2>
+      <p>Cuando usás una imagen, texto, música o video de internet para un trabajo escolar (o para subir a redes), hay reglas sobre qué podés usar y cómo. Esto se llama <span class="highlight">propiedad intelectual</span>.</p>
+
+      <div class="card-grid">
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🔒</div>
+          <h4>Todos los derechos reservados</h4>
+          <p>Es lo que se asume por defecto si no se indica nada. El autor es el único que decide cómo se usa su obra. Usarla sin permiso (por ejemplo, una foto de un fotógrafo profesional) puede traer problemas legales.</p>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🌍</div>
+          <h4>Creative Commons (CC)</h4>
+          <p>Sistema de licencias que permite a los autores compartir su trabajo bajo ciertas condiciones, sin perder todos los derechos. Muy usado en fotos, música y artículos educativos.</p>
+          <div class="card-example">
+            <strong>Las licencias más comunes:</strong><br>
+            • <strong>CC BY</strong> — Podés usar y modificar, citando al autor.<br>
+            • <strong>CC BY-SA</strong> — Igual, pero si modificás debés compartir bajo la misma licencia.<br>
+            • <strong>CC BY-NC</strong> — Uso permitido solo si NO es comercial.<br>
+            • <strong>CC0 / Dominio Público</strong> — Sin restricciones, uso totalmente libre.
+          </div>
+        </div>
+        <div class="card" style="cursor: default;">
+          <div class="card-icon">🖼️</div>
+          <h4>Bancos de imágenes libres</h4>
+          <p>Para trabajos escolares, usá bancos de imágenes con licencias abiertas en vez de "robar" la primera foto de Google.</p>
+          <div class="card-example">
+            <strong>Recomendados:</strong><br>
+            • Wikimedia Commons<br>
+            • Unsplash / Pexels<br>
+            • Pixabay<br>
+            <strong>Tip:</strong> en Google Imágenes → Herramientas → Derechos de uso → "Creative Commons"
+          </div>
+        </div>
+      </div>
+
+      <h2>📝 Cómo citar una fuente correctamente</h2>
+      <p>Citar es dar crédito a quien creó la información que usaste. Además de ser una cuestión de honestidad, evita el <span class="highlight">plagio</span> (presentar el trabajo de otro como propio).</p>
+
+      <div class="interactive-box">
+        <h4>✍️ Formato básico de cita (estilo simplificado para la escuela)</h4>
+        <div class="code-block" style="font-size: 0.85rem;">
+<span class="code-text">Apellido, Nombre del autor (o nombre del sitio/institución).<br>
+"Título del artículo o página".<br>
+Nombre del sitio web.<br>
+Fecha de publicación o de consulta.<br>
+URL completa.</span>
+        </div>
+        <p style="margin-top: 12px; font-size: 0.9rem;"><strong>Ejemplo real:</strong></p>
+        <div class="code-block" style="font-size: 0.85rem;">
+<span class="code-text">Ministerio de Educación de la Provincia de Buenos Aires.<br>
+"Plan Provincial de Conectividad Educativa".<br>
+abc.gob.ar.<br>
+Consultado el 15 de junio de 2026.<br>
+https://www.abc.gob.ar/...</span>
+        </div>
+        <p style="margin-top: 12px; font-size: 0.85rem; color: var(--accent);">💡 Para trabajos más formales, herramientas como Google Docs o Word tienen generadores de citas automáticos (formato APA, MLA, etc.), y sitios como Cite This For Me ayudan a armarlas a partir de la URL.</p>
+      </div>
+
+      <div class="quiz-container" id="quiz4">
+        <h3>🧪 Autoevaluación: Cibercultura</h3>
+        <div class="quiz-progress" id="quiz4-progress"></div>
+        <div id="quiz4-content"></div>
+      </div>
+    </div>
+
+    <!-- TAB 5: AUTOEVALUACIÓN FINAL -->
+    <div class="tab-content" id="tab-5">
+      <h1>✅ Autoevaluación Final</h1>
+      <p>¡Llegaste al final del módulo! Hacé esta evaluación completa para verificar todo lo aprendido. ¡Suerte!</p>
+
+      <div class="quiz-container" id="quizFinal">
+        <h3>🎓 Evaluación Integral - Módulo 3</h3>
+        <div class="quiz-progress" id="quizFinal-progress"></div>
+        <div id="quizFinal-content"></div>
+      </div>
+    </div>
+
+    <!-- TAB 6: WIFI -->
+    <div class="tab-content" id="tab-6">
+      <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 80px; margin-bottom: 20px;" class="float">📡</div>
+        <h1>Conectividad WIFI</h1>
+        <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto 30px;">
+          Accedé a los recursos de conectividad de la escuela y la provincia.
+        </p>
+        <div style="margin: 40px 0;">
+          <a href="wifi_conectividad_argentina.html" target="_blank" rel="noopener" class="btn btn-primary" style="font-size: 1.2rem; padding: 20px 40px; text-decoration: none;">
+            📡 Ir a la web de WIFI
+          </a>
+        </div>
+        
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 20px;">
+          Esta sección te redirige a los recursos de conectividad inalámbrica de la institución.
+        </p>
+        <div class="arg-badge" style="display: inline-block; margin-top: 30px;">
+          🇦🇷 Provincia de Buenos Aires - Conectividad Escolar
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Tab switching
+function switchTab(index) {
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+  contents.forEach((c, i) => c.classList.toggle('active', i === index));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateProgress();
+}
+
+function updateProgress() {
+  const tabs = document.querySelectorAll('.tab');
+  const activeIndex = Array.from(tabs).findIndex(t => t.classList.contains('active'));
+  const progress = ((activeIndex + 1) / tabs.length) * 100;
+  document.getElementById('moduleProgress').style.width = progress + '%';
+}
+
+// Search simulator - evalúa operadores booleanos reales
+function simulateSearch() {
+  const raw = document.getElementById('searchInput').value.trim().toLowerCase();
+  const results = document.getElementById('searchResults');
+  const empty = document.getElementById('searchEmpty');
+  const explain = document.getElementById('searchExplain');
+  const items = document.querySelectorAll('#searchResults .result-item');
+
+  if (!raw) return;
+
+  // Detectar operador presente
+  let mode = 'AND'; // por defecto, si solo hay una palabra
+  let terms = [];
+  let excludeTerms = [];
+
+  if (raw.includes(' not ')) {
+    const parts = raw.split(' not ');
+    terms = parts[0].trim().split(/\s+and\s+|\s+or\s+|\s+/).filter(Boolean);
+    excludeTerms = parts[1].trim().split(/\s+/).filter(Boolean);
+    mode = raw.includes(' and ') ? 'AND_NOT' : (raw.includes(' or ') ? 'OR_NOT' : 'SINGLE_NOT');
+  } else if (raw.includes(' or ')) {
+    terms = raw.split(' or ').map(t => t.trim()).filter(Boolean);
+    mode = 'OR';
+  } else if (raw.includes(' and ')) {
+    terms = raw.split(' and ').map(t => t.trim()).filter(Boolean);
+    mode = 'AND';
+  } else {
+    terms = raw.split(/\s+/).filter(Boolean);
+    mode = 'AND';
+  }
+
+  let matchCount = 0;
+  items.forEach(item => {
+    const tags = (item.getAttribute('data-tags') || '').split(' ');
+    let isMatch = false;
+
+    if (mode === 'AND') {
+      isMatch = terms.every(t => tags.includes(t));
+    } else if (mode === 'OR') {
+      isMatch = terms.some(t => tags.includes(t));
+    } else if (mode === 'AND_NOT') {
+      isMatch = terms.every(t => tags.includes(t)) && !excludeTerms.some(t => tags.includes(t));
+    } else if (mode === 'OR_NOT') {
+      isMatch = terms.some(t => tags.includes(t)) && !excludeTerms.some(t => tags.includes(t));
+    } else if (mode === 'SINGLE_NOT') {
+      isMatch = terms.every(t => tags.includes(t)) && !excludeTerms.some(t => tags.includes(t));
+    }
+
+    item.style.display = isMatch ? '' : 'none';
+    if (isMatch) matchCount++;
+  });
+
+  results.classList.add('show');
+
+  const modeLabels = {
+    AND: `🔵 Modo AND: buscando resultados que tengan <strong>TODOS</strong> estos términos: ${terms.join(', ')}`,
+    OR: `🟡 Modo OR: buscando resultados que tengan <strong>CUALQUIERA</strong> de estos términos: ${terms.join(' o ')}`,
+    AND_NOT: `🔵🔴 Modo AND + NOT: ${terms.join(', ')} pero excluyendo: ${excludeTerms.join(', ')}`,
+    OR_NOT: `🟡🔴 Modo OR + NOT: ${terms.join(' o ')} pero excluyendo: ${excludeTerms.join(', ')}`,
+    SINGLE_NOT: `🔴 Modo NOT: ${terms.join(', ')} pero excluyendo: ${excludeTerms.join(', ')}`
+  };
+  explain.style.display = 'block';
+  explain.innerHTML = (modeLabels[mode] || '') + ` → <strong>${matchCount}</strong> resultado(s) encontrado(s)`;
+
+  empty.style.display = matchCount === 0 ? 'block' : 'none';
+}
+
+// Web evolution game
+function checkWebAnswer(btn, isCorrect, feedbackId) {
+  const feedback = document.getElementById(feedbackId);
+  const parent = btn.parentElement;
+  const buttons = parent.querySelectorAll('.btn');
+  buttons.forEach(b => b.disabled = true);
+
+  if (isCorrect) {
+    btn.style.background = 'var(--success)';
+    btn.style.color = 'white';
+    feedback.className = 'quiz-feedback show correct';
+    feedback.innerHTML = '✅ ¡Correcto! Identificaste la versión de la web correctamente.';
+  } else {
+    btn.style.background = 'var(--error)';
+    btn.style.color = 'white';
+    feedback.className = 'quiz-feedback show wrong';
+    feedback.innerHTML = '❌ Incorrecto. Pensá en qué características definen cada versión de la web.';
+  }
+}
+
+// Quiz System
+const quizzes = {
+  quiz1: {
+    questions: [
+      {
+        question: "¿Qué significa HTML?",
+        options: [
+          "HyperText Markup Language",
+          "High Tech Modern Language",
+          "Home Tool Management Link",
+          "Hyper Transfer Mode Link"
+        ],
+        correct: 0,
+        explanation: "HTML = HyperText Markup Language. Es el lenguaje de marcado que define la estructura de las páginas web."
+      },
+      {
+        question: "¿Cuál es la diferencia entre HTTP y HTTPS?",
+        options: [
+          "HTTPS es más rápido",
+          "HTTPS es la versión segura con encriptación",
+          "HTTP es para imágenes, HTTPS para texto",
+          "No hay diferencia"
+        ],
+        correct: 1,
+        explanation: "HTTPS (HTTP Secure) encripta la comunicación entre navegador y servidor, protegiendo datos sensibles."
+      },
+      {
+        question: "¿Qué es un hipervínculo?",
+        options: [
+          "Un tipo de virus informático",
+          "Un elemento clickeable que lleva a otro documento",
+          "Una imagen de alta resolución",
+          "Un protocolo de red"
+        ],
+        correct: 1,
+        explanation: "Un hipervínculo (link) es un elemento que, al hacer clic, te lleva a otro documento, página o recurso."
+      },
+      {
+        question: "¿Qué significa RSS?",
+        options: [
+          "Red Social de Streaming",
+          "Really Simple Syndication",
+          "Remote Server System",
+          "Real Time Sharing"
+        ],
+        correct: 1,
+        explanation: "RSS = Really Simple Syndication. Permite suscribirse a actualizaciones de sitios web."
+      },
+      {
+        question: "¿Cuál es un ejemplo de digitalización en Argentina 2026?",
+        options: [
+          "Usar papel y lápiz para tomar notas",
+          "El DNI digital en Mi Argentina",
+          "Mandar cartas por correo postal",
+          "Usar enciclopedias de papel"
+        ],
+        correct: 1,
+        explanation: "El DNI digital en la app Mi Argentina es un claro ejemplo de digitalización de documentos."
+      }
+    ]
+  },
+  quiz2: {
+    questions: [
+      {
+        question: "¿Qué es un metabuscador?",
+        options: [
+          "Un buscador que solo busca en redes sociales",
+          "Un sistema que consulta varios buscadores a la vez",
+          "Un buscador de metaverso",
+          "Un buscador que solo funciona en Argentina"
+        ],
+        correct: 1,
+        explanation: "Un metabuscador no tiene base de datos propia, sino que consulta múltiples buscadores y combina resultados."
+      },
+      {
+        question: "¿Cuál de estos es un metabuscador de empleo?",
+        options: [
+          "Google Scholar",
+          "Indeed",
+          "Wolfram Alpha",
+          "PubMed"
+        ],
+        correct: 1,
+        explanation: "Indeed es un metabuscador de empleo que agrega ofertas de múltiples plataformas laborales."
+      },
+      {
+        question: "¿Qué hace el operador booleano AND?",
+        options: [
+          "Muestra resultados que contengan A O B",
+          "Muestra resultados que contengan A Y B simultáneamente",
+          "Excluye resultados con B",
+          "Muestra todos los resultados"
+        ],
+        correct: 1,
+        explanation: "AND es la intersección: solo muestra resultados que contienen AMBOS términos."
+      },
+      {
+        question: "¿Qué hace el operador NOT?",
+        options: [
+          "Muestra resultados con ambos términos",
+          "Excluye resultados que contengan el segundo término",
+          "Muestra resultados con cualquiera de los dos",
+          "No tiene efecto en la búsqueda"
+        ],
+        correct: 1,
+        explanation: "NOT excluye resultados que contengan el término especificado después del operador."
+      },
+      {
+        question: "¿Cuál de estos es un buscador especializado académico?",
+        options: [
+          "Dogpile",
+          "Google Scholar",
+          "Trivago",
+          "Skyscanner"
+        ],
+        correct: 1,
+        explanation: "Google Scholar está especializado en artículos académicos, tesis y publicaciones científicas."
+      },
+      {
+        question: "Encontrás una noticia sin fecha ni autor que circula por WhatsApp. ¿Qué deberías hacer antes de creerla o reenviarla?",
+        options: [
+          "Reenviarla a todos tus contactos por si es verdad",
+          "Verificarla en un sitio de fact-checking como Chequeado.com",
+          "Ignorarla porque todo lo que llega por WhatsApp es falso",
+          "Creerla si tiene muchas mayúsculas y signos de exclamación"
+        ],
+        correct: 1,
+        explanation: "Ante información sin autor ni fecha, lo correcto es verificarla en fuentes confiables o sitios de verificación de datos antes de darla por cierta."
+      }
+    ]
+  },
+  quiz3: {
+    questions: [
+      {
+        question: "¿Cuál es la característica principal de la Web 1.0?",
+        options: [
+          "Redes sociales y contenido generado por usuarios",
+          "Sitios estáticos de solo lectura",
+          "Inteligencia artificial y personalización",
+          "Datos semánticos y ontologías"
+        ],
+        correct: 1,
+        explanation: "Web 1.0 = red pasiva. Los usuarios solo consumían contenido estático creado por webmasters."
+      },
+      {
+        question: "¿Qué define a la Web 2.0?",
+        options: [
+          "Sitios de solo lectura",
+          "Contenido generado por usuarios y redes sociales",
+          "Asistentes de voz inteligentes",
+          "Realidad virtual inmersiva"
+        ],
+        correct: 1,
+        explanation: "Web 2.0 = red participativa. Los usuarios pasan de consumidores a creadores de contenido."
+      },
+      {
+        question: "¿Qué tecnología es característica de la Web 3.0?",
+        options: [
+          "HTML estático",
+          "Blogs y wikis",
+          "Ontologías y datos semánticos",
+          "Memes virales"
+        ],
+        correct: 2,
+        explanation: "Web 3.0 = web semántica. Las máquinas entienden el significado de los datos mediante metadatos y ontologías."
+      },
+      {
+        question: "¿Cuál es un ejemplo de Web 4.0 en Argentina 2026?",
+        options: [
+          "Un sitio estático de noticias",
+          "ChatGPT para tareas escolares",
+          "Un foro de mensajes",
+          "Un blog personal"
+        ],
+        correct: 1,
+        explanation: "ChatGPT y asistentes de IA representan la Web 4.0: personalización, predicción y colaboración con IA."
+      },
+      {
+        question: "¿Qué significa 'red pasiva'?",
+        options: [
+          "Una red que no funciona",
+          "Una red donde los usuarios solo consumen contenido",
+          "Una red segura",
+          "Una red lenta"
+        ],
+        correct: 1,
+        explanation: "'Red pasiva' describe la Web 1.0, donde los usuarios eran espectadores pasivos del contenido."
+      }
+    ]
+  },
+  quiz4: {
+    questions: [
+      {
+        question: "¿Quién acuñó el concepto de 'Sociedad Red'?",
+        options: [
+          "Bill Gates",
+          "Manuel Castells",
+          "Tim Berners-Lee",
+          "Mark Zuckerberg"
+        ],
+        correct: 1,
+        explanation: "Manuel Castells, sociólogo español, desarrolló el concepto de Sociedad Red en su obra 'La Era de la Información'."
+      },
+      {
+        question: "¿Qué diferencia hay entre Sociedad de la Información y Sociedad del Conocimiento?",
+        options: [
+          "Son lo mismo",
+          "La del conocimiento valora la aplicación creativa de la información",
+          "La de la información es más moderna",
+          "No hay diferencia significativa"
+        ],
+        correct: 1,
+        explanation: "La Sociedad del Conocimiento va más allá: valora el conocimiento aplicado, la creatividad y la innovación."
+      },
+      {
+        question: "¿Qué es la cibercultura?",
+        options: [
+          "Una cultura antigua",
+          "Prácticas y valores que surgen del uso de internet",
+          "Un tipo de virus",
+          "Una religión digital"
+        ],
+        correct: 1,
+        explanation: "Cibercultura = conjunto de prácticas, valores, símbolos y normas que surgen del uso de tecnologías digitales."
+      },
+      {
+        question: "¿Cuál es un riesgo de la desinformación digital?",
+        options: [
+          "Que internet sea más rápido",
+          "Deepfakes y fake news",
+          "Que haya más memes",
+          "Que los celulares duren más"
+        ],
+        correct: 1,
+        explanation: "Deepfakes (videos manipulados con IA) y fake news son amenazas reales de la desinformación digital."
+      },
+      {
+        question: "¿Qué es el 'phishing'?",
+        options: [
+          "Un deporte acuático",
+          "Mensajes falsos que intentan robar datos personales",
+          "Un tipo de buscador",
+          "Una red social nueva"
+        ],
+        correct: 1,
+        explanation: "Phishing = técnica de fraude que usa mensajes falsos (mails, SMS) para robar datos personales."
+      },
+      {
+        question: "Para un trabajo escolar, ¿cuál es la mejor forma de usar Wikipedia?",
+        options: [
+          "Copiar y pegar el artículo completo",
+          "Usarla como punto de partida y luego citar las fuentes originales que aparecen en sus referencias",
+          "No usarla nunca, ni para entender el tema",
+          "Citar 'según Wikipedia dice' como fuente principal en un informe formal"
+        ],
+        correct: 1,
+        explanation: "Wikipedia es un buen punto de partida para entender un tema, pero conviene seguir los enlaces a las fuentes originales citadas en el artículo para usarlas como referencia formal."
+      },
+      {
+        question: "Una foto en internet tiene licencia 'CC BY-NC'. ¿Qué significa?",
+        options: [
+          "No se puede usar bajo ninguna circunstancia",
+          "Se puede usar libremente, incluso para vender productos",
+          "Se puede usar citando al autor, pero NO para fines comerciales",
+          "Solo la puede usar el autor original"
+        ],
+        correct: 2,
+        explanation: "CC BY-NC permite usar y compartir la obra dando crédito al autor (BY), pero prohíbe el uso comercial (NC = Non-Commercial)."
+      }
+    ]
+  },
+  quizFinal: {
+    questions: [
+      {
+        question: "¿Qué protocolo garantiza la seguridad en la navegación web?",
+        options: ["HTTP", "FTP", "HTTPS", "SMTP"],
+        correct: 2,
+        explanation: "HTTPS (HTTP Secure) encripta la comunicación y muestra el candadito en el navegador."
+      },
+      {
+        question: "¿Cuál de estos es un metabuscador turístico?",
+        options: ["Google", "Bing", "Skyscanner", "Yahoo"],
+        correct: 2,
+        explanation: "Skyscanner compara vuelos y hoteles de múltiples aerolíneas y agencias simultáneamente."
+      },
+      {
+        question: "En la Web 2.0, los usuarios son principalmente:",
+        options: ["Espectadores pasivos", "Creadores de contenido", "Programadores", "Robots"],
+        correct: 1,
+        explanation: "Web 2.0 = participación. Los usuarios crean blogs, videos, comentarios, etc."
+      },
+      {
+        question: "¿Qué operador booleano usarías para excluir un término?",
+        options: ["AND", "OR", "NOT", "PLUS"],
+        correct: 2,
+        explanation: "NOT excluye resultados que contengan el término especificado."
+      },
+      {
+        question: "¿Qué caracteriza a la Sociedad del Conocimiento?",
+        options: [
+          "Solo acumular datos",
+          "Valorar la creatividad y el aprendizaje permanente",
+          "Usar solo tecnología antigua",
+          "Evitar internet"
+        ],
+        correct: 1,
+        explanation: "La Sociedad del Conocimiento valora el conocimiento aplicado, la innovación y el aprendizaje continuo."
+      },
+      {
+        question: "¿Qué es un hipervínculo?",
+        options: [
+          "Un tipo de virus",
+          "Un enlace que conecta documentos",
+          "Una imagen grande",
+          "Un programa de edición"
+        ],
+        correct: 1,
+        explanation: "Un hipervínculo (link) conecta documentos y permite la navegación no lineal en la web."
+      },
+      {
+        question: "¿Cuál es un ejemplo de digitalización en la escuela?",
+        options: [
+          "Usar pizarrón de tiza",
+          "SIPE para asistencias digitales",
+          "Mandar notas por carta",
+          "Fotocopiar apuntes"
+        ],
+        correct: 1,
+        explanation: "SIPE (Sistema Integral de Permanencia Escolar) digitaliza asistencias y calificaciones en escuelas de PBA."
+      },
+      {
+        question: "¿Qué es la cibercultura?",
+        options: [
+          "Cultura de los ciberpunks",
+          "Prácticas y valores surgidos del uso de internet",
+          "Una app de música",
+          "Un tipo de videojuego"
+        ],
+        correct: 1,
+        explanation: "Cibercultura abarca memes, lenguaje digital, comunidades online y normas de comportamiento en internet."
+      },
+      {
+        question: "¿Qué tecnología define a la Web 4.0?",
+        options: [
+          "HTML estático",
+          "Inteligencia Artificial",
+          "Fax digital",
+          "Telégrafo"
+        ],
+        correct: 1,
+        explanation: "Web 4.0 se basa en IA generativa, asistentes conversacionales y personalización predictiva."
+      },
+      {
+        question: "Antes de usar una fuente de internet para un trabajo, ¿qué NO deberías chequear?",
+        options: [
+          "Quién es el autor y si tiene credenciales en el tema",
+          "Cuándo fue publicada o actualizada por última vez",
+          "El color de fondo de la página web",
+          "Si cita otras fuentes o referencias confiables"
+        ],
+        correct: 2,
+        explanation: "El color de fondo no dice nada sobre la confiabilidad. Lo importante es autoría, fecha, objetivo del sitio y si respalda sus afirmaciones con fuentes."
+      },
+      {
+        question: "¿Para qué sirve el operador site: en Google?",
+        options: [
+          "Cambiar el idioma",
+          "Buscar solo en un dominio específico",
+          "Aumentar la velocidad",
+          "Cambiar el color de fondo"
+        ],
+        correct: 1,
+        explanation: "site:edu.ar busca solo en dominios educativos argentinos, filtrando resultados relevantes."
+      }
+    ]
+  }
+};
+
+let quizState = {};
+
+function initQuiz(quizId) {
+  quizState[quizId] = { current: 0, score: 0, answered: false };
+  const quiz = quizzes[quizId];
+  const progressEl = document.getElementById(quizId + '-progress');
+
+  // Create progress dots
+  progressEl.innerHTML = quiz.questions.map((_, i) => 
+    `<div class="progress-dot ${i === 0 ? 'active' : ''}" id="${quizId}-dot-${i}"></div>`
+  ).join('');
+
+  renderQuestion(quizId);
+}
+
+function renderQuestion(quizId) {
+  const state = quizState[quizId];
+  const quiz = quizzes[quizId];
+  const q = quiz.questions[state.current];
+  const container = document.getElementById(quizId + '-content');
+
+  const letters = ['A', 'B', 'C', 'D'];
+
+  container.innerHTML = `
+    <div class="quiz-question">${state.current + 1}. ${q.question}</div>
+    <div class="quiz-options">
+      ${q.options.map((opt, i) => `
+        <div class="quiz-option" onclick="selectOption('${quizId}', ${i})" id="${quizId}-opt-${i}">
+          <div class="option-letter">${letters[i]}</div>
+          <div>${opt}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="quiz-feedback" id="${quizId}-feedback"></div>
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="btn btn-primary" onclick="checkAnswer('${quizId}')" id="${quizId}-check-btn" disabled>✅ Verificar</button>
+      <button class="btn btn-secondary" onclick="nextQuestion('${quizId}')" id="${quizId}-next-btn" style="display:none;">➡️ Siguiente</button>
+    </div>
+    <div style="text-align: center; margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">
+      Pregunta ${state.current + 1} de ${quiz.questions.length}
+    </div>
+  `;
+
+  state.answered = false;
+  state.selected = null;
+}
+
+function selectOption(quizId, index) {
+  const state = quizState[quizId];
+  if (state.answered) return;
+
+  state.selected = index;
+  const options = document.querySelectorAll(`#${quizId}-content .quiz-option`);
+  options.forEach((opt, i) => {
+    opt.classList.toggle('selected', i === index);
+  });
+
+  document.getElementById(quizId + '-check-btn').disabled = false;
+}
+
+function checkAnswer(quizId) {
+  const state = quizState[quizId];
+  const quiz = quizzes[quizId];
+  const q = quiz.questions[state.current];
+  const feedback = document.getElementById(quizId + '-feedback');
+
+  state.answered = true;
+
+  const options = document.querySelectorAll(`#${quizId}-content .quiz-option`);
+  options.forEach((opt, i) => {
+    opt.style.cursor = 'default';
+    if (i === q.correct) {
+      opt.classList.add('correct');
+    } else if (i === state.selected && i !== q.correct) {
+      opt.classList.add('wrong');
+    }
+  });
+
+  const dot = document.getElementById(`${quizId}-dot-${state.current}`);
+  if (state.selected === q.correct) {
+    state.score++;
+    dot.classList.add('correct');
+    feedback.className = 'quiz-feedback show correct';
+    feedback.innerHTML = `✅ ¡Correcto! ${q.explanation}`;
+  } else {
+    dot.classList.add('wrong');
+    feedback.className = 'quiz-feedback show wrong';
+    feedback.innerHTML = `❌ Incorrecto. La respuesta correcta era: <strong>${q.options[q.correct]}</strong>. ${q.explanation}`;
+  }
+
+  document.getElementById(quizId + '-check-btn').style.display = 'none';
+  document.getElementById(quizId + '-next-btn').style.display = 'inline-flex';
+
+  if (state.current === quiz.questions.length - 1) {
+    document.getElementById(quizId + '-next-btn').innerHTML = '🏁 Finalizar';
+    document.getElementById(quizId + '-next-btn').onclick = () => showScore(quizId);
+  }
+}
+
+function nextQuestion(quizId) {
+  const state = quizState[quizId];
+  state.current++;
+
+  const dots = document.querySelectorAll(`#${quizId}-progress .progress-dot`);
+  dots.forEach((d, i) => {
+    d.classList.toggle('active', i === state.current);
+  });
+
+  renderQuestion(quizId);
+}
+
+function showScore(quizId) {
+  const state = quizState[quizId];
+  const quiz = quizzes[quizId];
+  const container = document.getElementById(quizId + '-content');
+  const percentage = Math.round((state.score / quiz.questions.length) * 100);
+
+  let message = '';
+  let emoji = '';
+  if (percentage >= 90) { message = '¡Excelente! Dominás el tema.'; emoji = '🏆'; }
+  else if (percentage >= 70) { message = '¡Muy bien! Casi perfecto.'; emoji = '🥈'; }
+  else if (percentage >= 50) { message = 'Bien, pero podés repasar algunos conceptos.'; emoji = '📚'; }
+  else { message = 'Necesitás repasar el material. ¡No te desanimes!'; emoji = '💪'; }
+
+  container.innerHTML = `
+    <div class="quiz-score">
+      <div style="font-size: 60px; margin-bottom: 20px;">${emoji}</div>
+      <div class="score-number">${percentage}%</div>
+      <div class="score-text">${state.score} de ${quiz.questions.length} correctas</div>
+      <div style="margin-top: 20px; color: var(--text-muted);">${message}</div>
+      <button class="btn btn-primary" onclick="initQuiz('${quizId}')" style="margin-top: 30px;">🔄 Reintentar</button>
+    </div>
+  `;
+
+  // Confetti effect
+  if (percentage >= 70) {
+    for (let i = 0; i < 50; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.background = ['var(--accent)', 'var(--accent2)', 'var(--accent3)', 'var(--success)'][Math.floor(Math.random() * 4)];
+      confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 4000);
+    }
+  }
+}
+
+// Initialize all quizzes when tabs are shown
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+      const target = mutation.target;
+      if (target.classList.contains('active')) {
+        if (target.id === 'tab-1' && !quizState.quiz1) initQuiz('quiz1');
+        if (target.id === 'tab-2' && !quizState.quiz2) initQuiz('quiz2');
+        if (target.id === 'tab-3' && !quizState.quiz3) initQuiz('quiz3');
+        if (target.id === 'tab-4' && !quizState.quiz4) initQuiz('quiz4');
+        if (target.id === 'tab-5' && !quizState.quizFinal) initQuiz('quizFinal');
+        if (target.id === 'tab-6') loadWifiTab();
+      }
+    }
+  });
+});
+
+document.querySelectorAll('.tab-content').forEach(tab => {
+  observer.observe(tab, { attributes: true });
+});
+
+// Also initialize first quiz if starting on that tab
+window.addEventListener('load', () => {
+  updateProgress();
+});
+
+// Handle WIFI tab - no quiz needed, just show content
+function loadWifiTab() {
+  // This tab is purely navigational, no special initialization needed
+}
+</script>
+<footer style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9rem;">
+  © 2026 - 4° NTICx - Prof. Daniel Villarruel - Módulo 3. Alfabetización en manejo de la información
+</footer>
+</body>
+</html>
